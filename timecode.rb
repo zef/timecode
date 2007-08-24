@@ -1,70 +1,72 @@
 # Timecode is a convenience object for calculating SMPTE timecode natively. It is used in
 # various StoryTool models and templates, offers string output and is immutable.
-# You can calculate in timecode objects ass well as with conventional integers and floats 
+# You can calculate in timecode objects ass well as with conventional integers and floats .
+# Timecode is mutable (assign total frames)
 class Timecode
   include Comparable
   DEFAULT_FPS = 25
   
   def initialize(total = 0, fps = DEFAULT_FPS)
     if total.is_a?(String)
-      parse(total)
+      self.replace(self.class.parse(total))
     else
-      raise WrongFramerate, "FPS cannot be zero" if fps == 0
-      @fps = fps.to_f
-      if (total.is_a?(String))
-        parse(total)
-      else
-        raise RangeError, "Timecode cannot be negative" if total.to_f < 0
-        @total = total.round 
-      end
+      raise FrameIsWhole, "the number of frames cannot be partial (Integer value needed)" if total.is_a?(Float)
+      raise WrongFramerate, "FPS cannot be zero" if fps.zero?
+      raise RangeError, "the number of frames cannot be partial (Integer value needed)" if fps.zero?
+      raise RangeError, "Timecode cannot be negative" if total.to_f < 0
+      
+      @total, @fps = total, fps 
     end
     freeze
   end
     
-  #parse timecode entered by the user
-  def self.parse(aString, with_fps = 25)
-    hrs, mins, secs, frames = 0,0,0,0
-    m = []
-    #try strictest parsing - 4 values after each other
-    if (aString.length == 8)
-      m = aString.scan /(\d{1,2})(\d{1,2})(\d{1,2})(\d{1,2})/   
-    elsif (aString.scan /:/)
-      m = aString.scan /(\d{1,2}):(\d{1,2}):(\d{1,2}):(\d{1,2})/
-    end
+  class << self
     
-    if m.length && m[0].is_a?(Array)
-      hrs, mins, secs, frames = m[0].compact.collect! { |item| item.to_f}
-    end
+    # Pparse timecode entered by the user
+    def parse(aString, with_fps = 25)
+      hrs, mins, secs, frames = 0,0,0,0
+      m = []
+      #try strictest parsing - 4 values after each other
+      if (aString.length == 8)
+        m = aString.scan /(\d{1,2})(\d{1,2})(\d{1,2})(\d{1,2})/   
+      elsif (aString.scan /:/)
+        m = aString.scan /(\d{1,2}):(\d{1,2}):(\d{1,2}):(\d{1,2})/
+      end
     
-    if hrs > 99
-      raise RangeError, "There can be no more than 99 hours, got #{hrs}"
-    elsif mins > 59
-      raise RangeError, "There can be no more than 59 minutes, got #{mins}"
-    elsif secs > 59
-      raise RangeError, "There can be no more than 59 seconds, got #{secs}"
-    elsif frames > (with_fps -1)
-      raise RangeError, "There can be no more than #{with_fps} frames @#{with_fps}, got #{frames}"
-    end
+      if m.length && m[0].is_a?(Array)
+        hrs, mins, secs, frames = m[0].compact.collect! { |item| item.to_f}
+      end
     
-    total = (hrs*(60*60*with_fps) +  mins*(60*with_fps) + secs*with_fps + frames).round
-    new(total, with_fps)
-  end
+      if hrs > 99
+        raise RangeError, "There can be no more than 99 hours, got #{hrs}"
+      elsif mins > 59
+        raise RangeError, "There can be no more than 59 minutes, got #{mins}"
+      elsif secs > 59
+        raise RangeError, "There can be no more than 59 seconds, got #{secs}"
+      elsif frames > (with_fps -1)
+        raise RangeError, "There can be no more than #{with_fps} frames @#{with_fps}, got #{frames}"
+      end
+    
+      total = (hrs*(60*60*with_fps) +  mins*(60*with_fps) + secs*with_fps + frames).round
+      new(total, with_fps)
+    end
   
-  def self.parse_with_fractional_seconds(tc_with_fractions_of_second, fps = DEFAULT_FPS)
-    fraction_expr = /\.(\d+)$/
-    fraction_part = ('.' + tc_with_fractions_of_second.scan(fraction_expr)[0][0]).to_f
+    def parse_with_fractional_seconds(tc_with_fractions_of_second, fps = DEFAULT_FPS)
+      fraction_expr = /\.(\d+)$/
+      fraction_part = ('.' + tc_with_fractions_of_second.scan(fraction_expr)[0][0]).to_f
 
-    seconds_per_frame = 1.0 / fps.to_f
-    frame_idx = (fraction_part / seconds_per_frame).floor
+      seconds_per_frame = 1.0 / fps.to_f
+      frame_idx = (fraction_part / seconds_per_frame).floor
 
-    tc_with_frameno = tc_with_fractions_of_second.gsub(fraction_expr, ":#{frame_idx}")
+      tc_with_frameno = tc_with_fractions_of_second.gsub(fraction_expr, ":#{frame_idx}")
 
-    parse(tc_with_frameno, fps)
-  end
+      parse(tc_with_frameno, fps)
+    end
   
-  def self.from_seconds(seconds_float, fps = DEFAULT_FPS)
-    total_frames = (seconds_float.to_f * fps.to_f)
-    new(total_frames, fps)
+    def from_seconds(seconds_float, the_fps = DEFAULT_FPS)
+      total_frames = (seconds_float.to_f * the_fps.to_f).ceil
+      Timecode.new(total_frames, the_fps)
+    end
   end
   
   #convert TC to fixnum
@@ -191,6 +193,9 @@ class Timecode
   class NonPositiveFps < RangeError
   end
   
+  class FrameIsWhole < RangeError
+  end
+  
   class WrongFramerate < ArgumentError
   end
   
@@ -200,8 +205,3 @@ class Timecode
   class MethodRequiresTimecode < ArgumentError
   end
 end
-
-if $0 == __FILE__
-  require 'timecode_test'
-end
-

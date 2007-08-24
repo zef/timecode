@@ -1,6 +1,8 @@
 require 'test/unit'
 require 'rubygems'
-require 'active_support' # for Fixnum#hours
+require 'timecode'
+# for Fixnum#hours
+require 'active_support'
 
 class TimecodeTest < Test::Unit::TestCase
   
