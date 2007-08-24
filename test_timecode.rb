@@ -1,6 +1,6 @@
 require 'test/unit'
 require 'rubygems'
-load File.dirname(__FILE__) + '/../lib/timecode.rb'
+
 # for Fixnum#hours
 require 'active_support'
 
