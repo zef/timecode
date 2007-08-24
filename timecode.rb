@@ -204,4 +204,8 @@ class Timecode
   
   class MethodRequiresTimecode < ArgumentError
   end
+<<<<<<< .mine
 end
+
+require 'timecode_test' if $0 == __FILE__=======
+end>>>>>>> .r277
