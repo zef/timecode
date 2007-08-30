@@ -1,5 +1,6 @@
 require 'test/unit'
 require 'rubygems'
+require 'timecode'
 
 # for Fixnum#hours
 require 'active_support'
@@ -25,7 +26,10 @@ class TimecodeTest < Test::Unit::TestCase
     assert_equal 0, film_tc.frames
     assert_equal one_and_a_half_hour_of_hollywood, film_tc.total
     assert_equal "01:30:00:00", film_tc.to_s
-    
+
+    assert_equal "01:30:00:04", (film_tc + 4).to_s
+    assert_equal "01:30:01:04", (film_tc + 28).to_s
+
     assert_raise(Timecode::WrongFramerate) do
       tc + film_tc
     end
@@ -42,9 +46,17 @@ class TimecodeTest < Test::Unit::TestCase
   def test_parse
     simple_tc = "00:10:34:10"
     
-    assert_nothing_raised { @tc = Timecode.parse(simple_tc) }
+    assert_nothing_raised do
+      @tc = Timecode.parse(simple_tc)
+      assert_equal simple_tc, @tc.to_s
+    end
   
     bad_tc = "00:76:89:30"
+    unknown_gobbledygook = "this is insane"
+    
+  # assert_raise(Timecode::CannotParse) do
+  #   tc = Timecode.parse(unknown_gobbledygook, 25)
+  # end
     
     assert_raise(Timecode::RangeError) do
       Timecode.parse(bad_tc, 25)

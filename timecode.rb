@@ -1,20 +1,34 @@
 # Timecode is a convenience object for calculating SMPTE timecode natively. It is used in
 # various StoryTool models and templates, offers string output and is immutable.
+#
+# The promise is that you only have to store two values to know the timecode - the amount
+# of frames and the framerate. An additional perk might be to save the dropframeness,
+# but we avoid that at this point.
+#
 # You can calculate in timecode objects ass well as with conventional integers and floats .
-# Timecode is mutable (assign total frames)
+# Timecode is immutable
 class Timecode
   include Comparable
   DEFAULT_FPS = 25
+  
+  class Error < RuntimeError; end
+  class TimecodeLibError < Error; end
+  class RangeError < Error; end
+  class NonPositiveFps < RangeError; end
+  class FrameIsWhole < RangeError; end
+  class TcIsZero < ZeroDivisionError; end
+  class CannotParse < Error; end
+
+  class WrongFramerate < ArgumentError; end
+  class MethodRequiresTimecode < ArgumentError; end
   
   def initialize(total = 0, fps = DEFAULT_FPS)
     if total.is_a?(String)
       self.replace(self.class.parse(total))
     else
       raise FrameIsWhole, "the number of frames cannot be partial (Integer value needed)" if total.is_a?(Float)
-      raise WrongFramerate, "FPS cannot be zero" if fps.zero?
-      raise RangeError, "the number of frames cannot be partial (Integer value needed)" if fps.zero?
       raise RangeError, "Timecode cannot be negative" if total.to_f < 0
-      
+      raise WrongFramerate, "FPS cannot be zero" if fps.zero?
       @total, @fps = total, fps 
     end
     freeze
@@ -22,29 +36,34 @@ class Timecode
     
   class << self
     
-    # Pparse timecode entered by the user
-    def parse(aString, with_fps = 25)
+    # Parse timecode entered by the user
+    def parse(input, with_fps = 25)
       hrs, mins, secs, frames = 0,0,0,0
       m = []
       #try strictest parsing - 4 values after each other
-      if (aString.length == 8)
-        m = aString.scan /(\d{1,2})(\d{1,2})(\d{1,2})(\d{1,2})/   
-      elsif (aString.scan /:/)
-        m = aString.scan /(\d{1,2}):(\d{1,2}):(\d{1,2}):(\d{1,2})/
+      if (input.scan /\:/)
+        m = input.scan /(\d{1,2}):(\d{1,2}):(\d{1,2}):(\d{1,2})/
+      elsif (input =~ /^(d){8}$/)
+        m = input.scan /(\d{1,2})(\d{1,2})(\d{1,2})(\d{1,2})/   
+      elsif (input.scan /\;/)
+        raise TimecodeLibError, "We do not support DF yet because we don't use NTSC. You might want to add this."
+      else
+        raise CannotParse, "Cannot parse #{input} into timecode"
       end
-    
+      
       if m.length && m[0].is_a?(Array)
         hrs, mins, secs, frames = m[0].compact.collect! { |item| item.to_f}
       end
-    
-      if hrs > 99
-        raise RangeError, "There can be no more than 99 hours, got #{hrs}"
-      elsif mins > 59
-        raise RangeError, "There can be no more than 59 minutes, got #{mins}"
-      elsif secs > 59
-        raise RangeError, "There can be no more than 59 seconds, got #{secs}"
-      elsif frames > (with_fps -1)
-        raise RangeError, "There can be no more than #{with_fps} frames @#{with_fps}, got #{frames}"
+      
+      case true
+        when hrs > 99
+          raise RangeError, "There can be no more than 99 hours, got #{hrs}"
+        when mins > 59
+          raise RangeError, "There can be no more than 59 minutes, got #{mins}"
+        when secs > 59
+          raise RangeError, "There can be no more than 59 seconds, got #{secs}"
+        when frames > (with_fps -1)
+          raise RangeError, "There can be no more than #{with_fps} frames @#{with_fps}, got #{frames}"
       end
     
       total = (hrs*(60*60*with_fps) +  mins*(60*with_fps) + secs*with_fps + frames).round
@@ -65,16 +84,16 @@ class Timecode
   
     def from_seconds(seconds_float, the_fps = DEFAULT_FPS)
       total_frames = (seconds_float.to_f * the_fps.to_f).ceil
-      Timecode.new(total_frames, the_fps)
+      new(total_frames, the_fps)
     end
   end
   
-  #convert TC to fixnum
+  # convert TC to fixnum
   def to_f
     @total
   end
   
-  #get total frame count
+  # get total frame count
   def total
     to_f
   end
@@ -84,49 +103,49 @@ class Timecode
     @fps
   end
     
-  #get the number of frames
+  # get the number of frames
   def frames
     _nudge[3]
   end
   
-  #get the number of seconds
+  # get the number of seconds
   def seconds
     _nudge[2]
   end
   
-  #get the number of minutes
+  # get the number of minutes
   def minutes
     _nudge[1]
   end
   
-  #get the number of hours
+  # get the number of hours
   def hours
     _nudge[0]
   end
   
-  #get frame interval in fractions of a second
+  # get frame interval in fractions of a second
   def frame_interval
     1.0/@fps
   end
   
-  #convert to different FPS
+  # convert to different FPS
   def convert(new_fps)
     raise NonPositiveFps, "FPS cannot be less than 0" if new_fps < 1
-    Timecode.new((total/fps)*new_fps, new_fps)
+    self.class.new((total/fps)*new_fps, new_fps)
   end
   
-  #get formatted SMPTE timecode
+  # get formatted SMPTE timecode
   def to_s
     hours, mins, seconds, frames = _nudge
     sprintf("%02d:%02d:%02d:%02d", hours, minutes, seconds, frames)
   end
   
-  #get countable total frames
+  # get countable total frames
   def to_f
     @total
   end
   
-  #add number of frames (or another timecode) to this one
+  # add number of frames (or another timecode) to this one
   def +(arg)
     if (arg.is_a?(Timecode) && arg.fps == @fps)
       Timecode.new(@total+arg.total, @fps)
@@ -137,6 +156,7 @@ class Timecode
     end
   end
   
+  # Substract a number of frames
   def -(arg)
     if (arg.is_a?(Timecode) &&  arg.fps == @fps)
       Timecode.new(@total-arg.total(), @fps)
@@ -147,17 +167,19 @@ class Timecode
     end
   end
   
+  # Multiply the timecode by a number
   def *(arg)
     raise RangeError, "Timecode multiplier cannot be negative" if (arg < 0)
     Timecode.new(@total*arg.to_f, @fps)
   end
   
+  # Slice the timespan in pieces
   def /(arg)
     Timecode.new(@total/arg, @fps)
   end
     
   def <=>(other_tc)
-    raise MethodRequiresTimecode, "You can compare timecodes with each other" if (!other_tc.is_a?(Timecode))
+    raise MethodRequiresTimecode, "You can only compare timecodes with each other" if (!other_tc.is_a?(Timecode))
     other_tc = other_tc.convert(@fps) if (other_tc.fps != @fps)
     # reciever ON THE LEFT
     total <=> other_tc.total
@@ -165,8 +187,7 @@ class Timecode
 
   private
   
-  #dynamically splits TC
-  #TC is traditionally a struct but it has no FPS information and needs 4 regs, wehreas TC is actually just 2 
+  # Formats the actual timecode output from the number of frames
   def _nudge
     frames = @total
     secs = (@total.to_f/@fps).floor
@@ -183,29 +204,4 @@ class Timecode
     
     [hrs, mins, secs, frames]
   end
-  
-  class TimecodeLibError < RangeError
-  end
-  
-  class RangeError < RangeError
-  end
-  
-  class NonPositiveFps < RangeError
-  end
-  
-  class FrameIsWhole < RangeError
-  end
-  
-  class WrongFramerate < ArgumentError
-  end
-  
-  class TcIsZero < ZeroDivisionError
-  end
-  
-  class MethodRequiresTimecode < ArgumentError
-  end
-<<<<<<< .mine
 end
-
-require 'timecode_test' if $0 == __FILE__=======
-end>>>>>>> .r277
