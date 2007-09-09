@@ -199,7 +199,7 @@ class Timecode
     
     raise RangeError, "More than 59 minutes" if mins > 59 
     raise RangeError, "More than 59 seconds" if secs > 59
-    raise TimecodeLibError, "More than #{@fps.to_s} frames at #{@fps.to_s}" if frames > (@fps -1)
+    raise TimecodeLibError, "More than #{@fps.to_s} frames (#{frames}) in the last second" if frames >= @fps
     raise RangeError, "Timecode cannot be longer that 99 hrs" if hrs > 99 
     
     [hrs, mins, secs, frames]
