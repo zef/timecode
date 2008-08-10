@@ -54,13 +54,19 @@ class TimecodeTest < Test::Unit::TestCase
     bad_tc = "00:76:89:30"
     unknown_gobbledygook = "this is insane"
     
-  # assert_raise(Timecode::CannotParse) do
-  #   tc = Timecode.parse(unknown_gobbledygook, 25)
-  # end
+    assert_raise(Timecode::CannotParse) do
+      tc = Timecode.parse(unknown_gobbledygook, 25)
+    end
     
     assert_raise(Timecode::RangeError) do
       Timecode.parse(bad_tc, 25)
     end
+  end
+  
+  def test_parse_from_numbers
+    assert_equal Timecode.new(10), Timecode.parse("10")
+    assert_equal Timecode.new(60), Timecode.parse("210")
+    assert_equal "10:10:10:10", Timecode.parse("10101010").to_s
   end
   
   def test_float_framerate

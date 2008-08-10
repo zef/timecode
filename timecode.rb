@@ -10,6 +10,7 @@
 class Timecode
   include Comparable
   DEFAULT_FPS = 25
+  COMPLETE_TC_RE = /^(\d{1,2}):(\d{1,2}):(\d{1,2}):(\d{1,2})$/
   
   class Error < RuntimeError; end
   class TimecodeLibError < Error; end
@@ -36,25 +37,42 @@ class Timecode
     
   class << self
     
-    # Parse timecode entered by the user
-    def parse(input, with_fps = 25)
+    # Parse timecode and return zero if none matched
+    def soft_parse(input, with_fps = DEFAULT_FPS)
+      parse(input) rescue new(0, with_fps)
+    end
+      
+    # Parse timecode entered by the user. Will raise if the string cannot be parsed.
+    def parse(input, with_fps = DEFAULT_FPS)
+      # Drop frame goodbye
+      raise TimecodeLibError, "We do not support drop frame" if (input =~ /\;/)
+      
       hrs, mins, secs, frames = 0,0,0,0
-      m = []
-      #try strictest parsing - 4 values after each other
-      if (input.scan /\:/)
-        m = input.scan /(\d{1,2}):(\d{1,2}):(\d{1,2}):(\d{1,2})/
-      elsif (input =~ /^(d){8}$/)
-        m = input.scan /(\d{1,2})(\d{1,2})(\d{1,2})(\d{1,2})/   
-      elsif (input.scan /\;/)
-        raise TimecodeLibError, "We do not support DF yet because we don't use NTSC. You might want to add this."
+      atoms = []
+      
+      if (input =~ /^(\d+)$/)
+        # Second option - a bunch of integers
+        ints = input.split(//)
+        atoms.unshift [ints.pop, ints.pop].reverse.join.to_i
+        atoms.unshift [ints.pop, ints.pop].reverse.join.to_i
+        atoms.unshift [ints.pop, ints.pop].reverse.join.to_i
+        atoms.unshift [ints.pop, ints.pop].reverse.join.to_i
+      elsif (input =~ COMPLETE_TC_RE)
+        atoms = input.scan(COMPLETE_TC_RE).to_a.flatten
       else
-        raise CannotParse, "Cannot parse #{input} into timecode"
+        raise CannotParse, "Cannot parse #{input} into timecode, no match"
       end
       
-      if m.length && m[0].is_a?(Array)
-        hrs, mins, secs, frames = m[0].compact.collect! { |item| item.to_f}
+      if atoms.any?
+        hrs, mins, secs, frames = atoms.map(&:to_i)
+      else
+        raise CannotParse, "Cannot parse #{input} into timecode, atoms were empty"
       end
       
+      at(hrs, mins, secs, frames)
+    end
+    
+    def at(hrs, mins, secs, frames, with_fps = DEFAULT_FPS)
       case true
         when hrs > 99
           raise RangeError, "There can be no more than 99 hours, got #{hrs}"
@@ -69,7 +87,7 @@ class Timecode
       total = (hrs*(60*60*with_fps) +  mins*(60*with_fps) + secs*with_fps + frames).round
       new(total, with_fps)
     end
-  
+    
     def parse_with_fractional_seconds(tc_with_fractions_of_second, fps = DEFAULT_FPS)
       fraction_expr = /\.(\d+)$/
       fraction_part = ('.' + tc_with_fractions_of_second.scan(fraction_expr)[0][0]).to_f
