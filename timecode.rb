@@ -34,7 +34,11 @@ class Timecode
     end
     freeze
   end
-    
+  
+  def inspect
+    super.gsub(/@fps/, self.to_s + ' @fps')
+  end
+  
   class << self
     
     # Parse timecode and return zero if none matched
