@@ -5,8 +5,8 @@
 # of frames and the framerate. An additional perk might be to save the dropframeness,
 # but we avoid that at this point.
 #
-# You can calculate in timecode objects ass well as with conventional integers and floats .
-# Timecode is immutable
+# You can calculate in timecode objects ass well as with conventional integers and floats.
+# Timecode is immutable and can be used as a value object.
 class Timecode
   include Comparable
   DEFAULT_FPS = 25
@@ -23,15 +23,24 @@ class Timecode
   class WrongFramerate < ArgumentError; end
   class MethodRequiresTimecode < ArgumentError; end
   
-  def initialize(total = 0, fps = DEFAULT_FPS)
-    if total.is_a?(String)
-      self.replace(self.class.parse(total))
+  def self.new(total = 0, fps = DEFAULT_FPS)
+    if total.nil?
+      new(0, fps)
+    elsif total.is_a?(String)
+      parse(total, fps)
     else
-      raise FrameIsWhole, "the number of frames cannot be partial (Integer value needed)" if total.is_a?(Float)
-      raise RangeError, "Timecode cannot be negative" if total.to_f < 0
-      raise WrongFramerate, "FPS cannot be zero" if fps.zero?
-      @total, @fps = total, fps 
+      super(total, fps)
     end
+  end
+  
+  def initialize(total = 0, fps = DEFAULT_FPS)
+    if total.is_a?(Float)
+      raise FrameIsWhole, "the number of frames cannot be partial (Integer value needed)"
+    end
+    
+    raise RangeError, "Timecode cannot be negative" if total.to_f < 0
+    raise WrongFramerate, "FPS cannot be zero" if fps.zero?
+    @total, @fps = total, fps 
     freeze
   end
   
@@ -54,8 +63,24 @@ class Timecode
       hrs, mins, secs, frames = 0,0,0,0
       atoms = []
       
-      if (input =~ /^(\d+)$/)
-        # Second option - a bunch of integers
+      # 10h 20m 10s 1f
+      if input =~ /\s/
+        # TODO - this is ActiveSupport
+        return input.split.map{|part|  parse(part, with_fps) }.sum
+      # 10s
+      elsif input =~ /^(\d+)s$/
+        return new(input.to_i * with_fps, with_fps)
+      # 10h
+      elsif input =~ /^(\d+)h$/i
+        return new(input.to_i * 60 * 60 * with_fps, with_fps)
+      # 20m
+      elsif input =~ /^(\d+)m$/i
+        return new(input.to_i * 60 * with_fps, with_fps)
+      # 60f - 60 frames, or 2 seconds and 10 frames
+      elsif input =~ /^(\d+)f$/i
+        return new(input.to_i, with_fps)
+      # A bunch of integers
+      elsif (input =~ /^(\d+)$/)
         ints = input.split(//)
         atoms.unshift [ints.pop, ints.pop].reverse.join.to_i
         atoms.unshift [ints.pop, ints.pop].reverse.join.to_i
@@ -150,7 +175,11 @@ class Timecode
     1.0/@fps
   end
   
-  # convert to different FPS
+  # Convert to different framerate based on the total frames. Therefore,
+  # 1 second of PAL video will convert to 25 frames of NTSC (this 
+  # is suitable for PAL to film TC conversions and back).
+  # It does not account for pulldown or anything in that sense, because
+  # then you need to think about cadences and such
   def convert(new_fps)
     raise NonPositiveFps, "FPS cannot be less than 0" if new_fps < 1
     self.class.new((total/fps)*new_fps, new_fps)
@@ -174,11 +203,11 @@ class Timecode
     elsif (arg.is_a?(Timecode))
       raise WrongFramerate, "You are calculating timecodes with different framerates"
     else
-      Timecode.new(@total+arg, @fps)
+      Timecode.new(@total + arg, @fps)
     end
   end
   
-  # Substract a number of frames
+  # Subtract a number of frames
   def -(arg)
     if (arg.is_a?(Timecode) &&  arg.fps == @fps)
       Timecode.new(@total-arg.total(), @fps)
@@ -192,7 +221,7 @@ class Timecode
   # Multiply the timecode by a number
   def *(arg)
     raise RangeError, "Timecode multiplier cannot be negative" if (arg < 0)
-    Timecode.new(@total*arg.to_f, @fps)
+    Timecode.new(@total*arg.to_i, @fps)
   end
   
   # Slice the timespan in pieces

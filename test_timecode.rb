@@ -69,9 +69,35 @@ class TimecodeTest < Test::Unit::TestCase
     assert_equal "10:10:10:10", Timecode.parse("10101010").to_s
   end
   
+  def test_parse_with_f
+    assert_equal Timecode.new(60), Timecode.parse("60f")
+  end
+  
+  def test_parse_s
+    assert_equal Timecode.new(50), Timecode.parse("2s")
+  end
+
+  def test_parse_m
+    assert_equal Timecode.new(25 * 60 * 3), Timecode.parse("3m")
+  end
+
+  def test_parse_h
+    assert_equal Timecode.new(25 * 60 * 60 * 3), Timecode.parse("3h")
+  end
+  
+  def test_parse_block
+    assert_equal '01:00:00:04', Timecode.parse("1h 4f").to_s
+    assert_equal '01:00:00:04', Timecode.parse("4f 1h").to_s
+    assert_equal '01:00:01:04', Timecode.parse("29f 1h").to_s
+  end
+  
   def test_float_framerate
     tc = Timecode.new(25, 12.5)
     assert_equal "00:00:02:00", tc.to_s
+  end
+  
+  def test_timecode_with_nil_gives_zero
+    assert_equal Timecode.new(0), Timecode.new(nil)
   end
   
   def test_parse_fractional_tc
