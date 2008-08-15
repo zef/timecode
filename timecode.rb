@@ -93,7 +93,7 @@ class Timecode
       end
       
       if atoms.any?
-        hrs, mins, secs, frames = atoms.map(&:to_i)
+        hrs, mins, secs, frames = atoms.map{|e| e.to_i}
       else
         raise CannotParse, "Cannot parse #{input} into timecode, atoms were empty"
       end
@@ -255,4 +255,28 @@ class Timecode
     
     [hrs, mins, secs, frames]
   end
+  
+  require File.dirname(__FILE__) + '/calc/calc'
+  
+  class Calculator < Juliks::Calc
+    class TCAtom < Juliks::Calc::Atom
+      def value
+        @value.total
+      end
+    end
+    
+    # Timecode can't be negative
+    PREFIXES = Hash.new
+    
+    def valid_atom?(atom)
+      Timecode.parse(atom) rescue false
+    end
+    
+    def put_atom(txt)
+      @stack << TCAtom.new(Timecode.parse(txt))
+    end
+  end
 end
+
+require 'stringio'
+#Timecode::Calculator.new.parse(StringIO.new("1000 + 23"))
