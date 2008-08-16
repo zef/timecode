@@ -110,7 +110,7 @@ class Timecode
         when secs > 59
           raise RangeError, "There can be no more than 59 seconds, got #{secs}"
         when frames > (with_fps -1)
-          raise RangeError, "There can be no more than #{with_fps} frames @#{with_fps}, got #{frames}"
+          raise RangeError, "There can be no more than #{with_fps -1} frames @#{with_fps}, got #{frames}"
       end
     
       total = (hrs*(60*60*with_fps) +  mins*(60*with_fps) + secs*with_fps + frames).round
@@ -138,6 +138,14 @@ class Timecode
   # convert TC to fixnum
   def to_f
     @total
+  end
+  
+  def to_i
+    @total
+  end
+  
+  def zero?
+    @total.zero?
   end
   
   # get total frame count
