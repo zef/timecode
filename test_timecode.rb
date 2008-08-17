@@ -63,6 +63,10 @@ class TimecodeTest < Test::Unit::TestCase
     end
   end
   
+  def test_succ
+    assert_equal Timecode.new(23), Timecode.new(22).succ
+  end
+  
   def test_zero
     assert Timecode.new(0).zero?
     assert !Timecode.new(1).zero?

@@ -7,6 +7,12 @@
 #
 # You can calculate in timecode objects ass well as with conventional integers and floats.
 # Timecode is immutable and can be used as a value object.
+#
+# Here's how to use it with ActiveRecord
+#
+#   composed_of :source_tc, :class_name => 'Timecode',
+#     :mapping => [%w(source_tc_frames total), %w(tape_fps fps)]
+
 class Timecode
   include Comparable
   DEFAULT_FPS = 25
@@ -195,8 +201,7 @@ class Timecode
   
   # get formatted SMPTE timecode
   def to_s
-    hours, mins, seconds, frames = _nudge
-    sprintf("%02d:%02d:%02d:%02d", hours, minutes, seconds, frames)
+    "%02d:%02d:%02d:%02d" % _nudge
   end
   
   # get countable total frames
@@ -218,7 +223,7 @@ class Timecode
   # Subtract a number of frames
   def -(arg)
     if (arg.is_a?(Timecode) &&  arg.fps == @fps)
-      Timecode.new(@total-arg.total(), @fps)
+      Timecode.new(@total-arg.total, @fps)
     elsif (arg.is_a?(Timecode))
       raise WrongFramerate, "You are calculating timecodes with different framerates"
     else
@@ -230,6 +235,11 @@ class Timecode
   def *(arg)
     raise RangeError, "Timecode multiplier cannot be negative" if (arg < 0)
     Timecode.new(@total*arg.to_i, @fps)
+  end
+  
+  # Get the next frame
+  def succ
+    self.class.new(@total + 1)
   end
   
   # Slice the timespan in pieces
