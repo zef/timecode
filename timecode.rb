@@ -61,6 +61,10 @@ class Timecode
       parse(input) rescue new(0, with_fps)
     end
       
+    # Parse with calculation
+    def parse_with_calculation
+    end
+    
     # Parse timecode entered by the user. Will raise if the string cannot be parsed.
     def parse(input, with_fps = DEFAULT_FPS)
       # Drop frame goodbye
@@ -104,7 +108,7 @@ class Timecode
         raise CannotParse, "Cannot parse #{input} into timecode, atoms were empty"
       end
       
-      at(hrs, mins, secs, frames)
+      at(hrs, mins, secs, frames, with_fps)
     end
     
     def at(hrs, mins, secs, frames, with_fps = DEFAULT_FPS)
@@ -209,6 +213,10 @@ class Timecode
     @total
   end
   
+  def to_i
+    @total
+  end
+  
   # add number of frames (or another timecode) to this one
   def +(arg)
     if (arg.is_a?(Timecode) && arg.fps == @fps)
@@ -248,10 +256,11 @@ class Timecode
   end
     
   def <=>(other_tc)
-    raise MethodRequiresTimecode, "You can only compare timecodes with each other" if (!other_tc.is_a?(Timecode))
-    other_tc = other_tc.convert(@fps) if (other_tc.fps != @fps)
-    # reciever ON THE LEFT
-    total <=> other_tc.total
+    if other_tc.is_a?(Timecode)
+      self.total <=> other_tc.class.new(other_tc.fps, self.fps).total
+    else
+      self.total <=> other_tc
+    end
   end
 
   private
@@ -276,25 +285,34 @@ class Timecode
   
   require File.dirname(__FILE__) + '/calc/calc'
   
+  # A simple timecode calculator. Beware that an integer is subject to strict rule checking.
   class Calculator < Juliks::Calc
     class TCAtom < Juliks::Calc::Atom
-      def value
-        @value.total
-      end
+      def value; @value; end
+      def initialize(v); @value = v; end
     end
     
     # Timecode can't be negative
     PREFIXES = Hash.new
     
-    def valid_atom?(atom)
-      Timecode.parse(atom) rescue false
+    # Parse the timecode calculation.
+    #
+    #  Timecode::Calculator.new.parse("10m + 10f") #=> 00:10:00:10
+    def parse(io, fps = DEFAULT_FPS)
+      @fps = fps
+      super(io)
     end
     
-    def put_atom(txt)
-      @stack << TCAtom.new(Timecode.parse(txt))
+    def create_subexpr_with(io) #:nodoc
+      @stack << self.class.new.parse(io, @fps)
+    end
+    
+    def valid_atom?(atom) #:nodoc
+      Timecode.parse(atom, @fps) rescue false
+    end
+    
+    def put_atom(txt) #:nodoc
+      @stack << TCAtom.new(Timecode.parse(txt, @fps))
     end
   end
 end
-
-require 'stringio'
-#Timecode::Calculator.new.parse(StringIO.new("1000 + 23"))
