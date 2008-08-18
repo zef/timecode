@@ -257,7 +257,7 @@ class Timecode
     
   def <=>(other_tc)
     if other_tc.is_a?(Timecode)
-      self.total <=> other_tc.class.new(other_tc.fps, self.fps).total
+      self.total <=> other_tc.class.new(other_tc.total, self.fps).total
     else
       self.total <=> other_tc
     end
