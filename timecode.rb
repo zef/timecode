@@ -14,6 +14,8 @@
 #     :mapping => [%w(source_tc_frames total), %w(tape_fps fps)]
 
 class Timecode
+  VERSION = '0.1.0'
+
   include Comparable
   DEFAULT_FPS = 25
   COMPLETE_TC_RE = /^(\d{1,2}):(\d{1,2}):(\d{1,2}):(\d{1,2})$/

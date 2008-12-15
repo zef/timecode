@@ -85,6 +85,7 @@ class TimecodeTest < Test::Unit::TestCase
   
   def test_parse_s
     assert_equal Timecode.new(50), Timecode.parse("2s")
+    assert_equal Timecode.new(60), Timecode.parse("2s", 30)
   end
 
   def test_parse_m
