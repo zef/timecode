@@ -69,11 +69,12 @@ class Timecode
     raise RangeError, "Timecode cannot be negative" if total.to_f < 0
     raise WrongFramerate, "FPS cannot be zero" if fps.zero?
     @total, @fps = total, fps 
+    validate!
     freeze
   end
   
   def inspect # :nodoc:
-    super.gsub(/@fps/, self.to_s + ' @fps')
+    super.gsub(/@fps/, self.to_s + ' @fps').gsub(/ @value=\[(.+)\],/, '')
   end
   
   class << self
@@ -181,22 +182,22 @@ class Timecode
     
   # get the number of frames
   def frames
-    _nudge[3]
+    @value[3]
   end
   
   # get the number of seconds
   def seconds
-    _nudge[2]
+    @value[2]
   end
   
   # get the number of minutes
   def minutes
-    _nudge[1]
+    @value[1]
   end
   
   # get the number of hours
   def hours
-    _nudge[0]
+    @value[0]
   end
   
   # get frame interval in fractions of a second
@@ -216,7 +217,7 @@ class Timecode
   
   # get formatted SMPTE timecode
   def to_s
-    "%02d:%02d:%02d:%02d" % _nudge
+    "%02d:%02d:%02d:%02d" % @value
   end
   
   # get total frames as float
@@ -279,7 +280,7 @@ class Timecode
   private
   
   # Formats the actual timecode output from the number of frames
-  def _nudge
+  def validate!
     frames = @total
     secs = (@total.to_f/@fps).floor
     frames-=(secs*@fps)
@@ -293,7 +294,7 @@ class Timecode
     raise TimecodeLibError, "More than #{@fps.to_s} frames (#{frames}) in the last second" if frames >= @fps
     raise RangeError, "Timecode cannot be longer that 99 hrs" if hrs > 99 
   
-    [hrs, mins, secs, frames]
+    @value = [hrs, mins, secs, frames]
   end
   
 end
