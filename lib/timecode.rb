@@ -69,7 +69,7 @@ class Timecode
     raise RangeError, "Timecode cannot be negative" if total.to_f < 0
     raise WrongFramerate, "FPS cannot be zero" if fps.zero?
     @total, @fps = total, fps 
-    validate!
+    @value = validate!
     freeze
   end
   
@@ -182,22 +182,22 @@ class Timecode
     
   # get the number of frames
   def frames
-    @value[3]
+    value_parts[3]
   end
   
   # get the number of seconds
   def seconds
-    @value[2]
+    value_parts[2]
   end
   
   # get the number of minutes
   def minutes
-    @value[1]
+    value_parts[1]
   end
   
   # get the number of hours
   def hours
-    @value[0]
+    value_parts[0]
   end
   
   # get frame interval in fractions of a second
@@ -217,7 +217,7 @@ class Timecode
   
   # get formatted SMPTE timecode
   def to_s
-    "%02d:%02d:%02d:%02d" % @value
+    "%02d:%02d:%02d:%02d" % value_parts
   end
   
   # get total frames as float
@@ -294,7 +294,11 @@ class Timecode
     raise TimecodeLibError, "More than #{@fps.to_s} frames (#{frames}) in the last second" if frames >= @fps
     raise RangeError, "Timecode cannot be longer that 99 hrs" if hrs > 99 
   
-    @value = [hrs, mins, secs, frames]
+    [hrs, mins, secs, frames]
+  end
+  
+  def value_parts
+    @value ||= validate!
   end
   
 end
