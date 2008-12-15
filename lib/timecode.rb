@@ -8,6 +8,8 @@
 # You can calculate in timecode objects ass well as with conventional integers and floats.
 # Timecode is immutable and can be used as a value object.
 #
+# Timecode objects are sortable
+#
 # Here's how to use it with ActiveRecord (your column names will be source_tc_frames_total and tape_fps)
 #
 #   composed_of :source_tc, :class_name => 'Timecode',
@@ -20,28 +22,46 @@ class Timecode
   DEFAULT_FPS = 25
   COMPLETE_TC_RE = /^(\d{1,2}):(\d{1,2}):(\d{1,2}):(\d{1,2})$/
   
+  # All Timecode lib errors inherit from this
   class Error < RuntimeError; end
+  
+  # Will be raised for functions that are not supported
   class TimecodeLibError < Error; end
+
+  # Gets raised if timecode is out of range (like 100 hours long)
   class RangeError < Error; end
+
+  # Self-explanatory
   class NonPositiveFps < RangeError; end
+
+  # Gets raised when float frame count is passed
   class FrameIsWhole < RangeError; end
+
+  # Gets raised when you divide by zero
   class TcIsZero < ZeroDivisionError; end
+
+  # Gets raised when a timecode cannot be parsed
   class CannotParse < Error; end
 
+  # Gets raised when you try to compute two timecodes with different framerates together
   class WrongFramerate < ArgumentError; end
+
+  # Well well...
   class MethodRequiresTimecode < ArgumentError; end
   
-  def self.new(total = 0, fps = DEFAULT_FPS)
-    if total.nil?
+  # Initialize a new Timecode. If a string is passed, it will be parsed, an integer
+  # will be interpreted as the total number of frames
+  def self.new(total_or_string = 0, fps = DEFAULT_FPS)
+    if total_or_string.nil?
       new(0, fps)
-    elsif total.is_a?(String)
-      parse(total, fps)
+    elsif total_or_string.is_a?(String)
+      parse(total_or_string, fps)
     else
-      super(total, fps)
+      super(total_or_string, fps)
     end
   end
   
-  def initialize(total = 0, fps = DEFAULT_FPS)
+  def initialize(total = 0, fps = DEFAULT_FPS) # :nodoc:
     if total.is_a?(Float)
       raise FrameIsWhole, "the number of frames cannot be partial (Integer value needed)"
     end
@@ -52,7 +72,7 @@ class Timecode
     freeze
   end
   
-  def inspect
+  def inspect # :nodoc:
     super.gsub(/@fps/, self.to_s + ' @fps')
   end
   
@@ -109,6 +129,7 @@ class Timecode
       at(hrs, mins, secs, frames, with_fps)
     end
     
+    # Initialize a Timecode object at this specfic timecode
     def at(hrs, mins, secs, frames, with_fps = DEFAULT_FPS)
       case true
         when hrs > 99
@@ -245,7 +266,8 @@ class Timecode
   def /(arg)
     Timecode.new(@total/arg, @fps)
   end
-    
+  
+  # Timecodes can be compared to each other
   def <=>(other_tc)
     if other_tc.is_a?(Timecode)
       self.total <=> other_tc.class.new(other_tc.total, self.fps).total
