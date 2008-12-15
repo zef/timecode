@@ -1,32 +1,29 @@
 = timecode
 
-* FIX (url)
+* http://projects.juli.nl/timecode
 
 == DESCRIPTION:
 
-FIX (describe your package)
-
-== FEATURES/PROBLEMS:
-
-* FIX (list of features or problems)
+Value class for SMPTE timecode information
 
 == SYNOPSIS:
 
-  FIX (code sample of usage)
+  tc = Timecode.parse("00:00:10:12", fps = 25)
+  tc.total #=> 262
+  
+== PROBLEMS:
 
-== REQUIREMENTS:
-
-* FIX (list of requirements)
+Currently there is no support for drop-frame timecode
 
 == INSTALL:
 
-* FIX (sudo gem install, anything else)
+* sudo gem install timecode
 
 == LICENSE:
 
 (The MIT License)
 
-Copyright (c) 2008 FIX
+Copyright (c) 2008 Julik Tarkhanov
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
