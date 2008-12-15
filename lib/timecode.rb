@@ -94,8 +94,7 @@ class Timecode
       
       # 10h 20m 10s 1f
       if input =~ /\s/
-        # TODO - this is ActiveSupport
-        return input.split.map{|part|  parse(part, with_fps) }.sum
+        return input.split.map{|part|  parse(part, with_fps) }.inject(lambda{|a, b|  a + b })
       # 10s
       elsif input =~ /^(\d+)s$/
         return new(input.to_i * with_fps, with_fps)
