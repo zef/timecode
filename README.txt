@@ -11,6 +11,9 @@ Value class for SMPTE timecode information
   tc = Timecode.parse("00:00:10:12", fps = 25)
   tc.total #=> 262
   
+  plus_ten = tc + Timecode.parse("10h", fps = 25)
+  plus_ten #=> "10:00:10:12"
+  
 == PROBLEMS:
 
 Currently there is no support for drop-frame timecode

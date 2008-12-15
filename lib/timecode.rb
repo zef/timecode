@@ -6,9 +6,7 @@
 # but we avoid that at this point.
 #
 # You can calculate in timecode objects ass well as with conventional integers and floats.
-# Timecode is immutable and can be used as a value object.
-#
-# Timecode objects are sortable
+# Timecode is immutable and can be used as a value object. Timecode objects are sortable.
 #
 # Here's how to use it with ActiveRecord (your column names will be source_tc_frames_total and tape_fps)
 #
@@ -94,7 +92,7 @@ class Timecode
       
       # 10h 20m 10s 1f
       if input =~ /\s/
-        return input.split.map{|part|  parse(part, with_fps) }.inject(lambda{|a, b|  a + b })
+        return input.split.map{|part|  parse(part, with_fps) }.inject { |sum, p| sum + p.total }
       # 10s
       elsif input =~ /^(\d+)s$/
         return new(input.to_i * with_fps, with_fps)
@@ -158,6 +156,8 @@ class Timecode
       parse(tc_with_frameno, fps)
     end
   
+    # create a timecode from seconds. Seconds can be float (this is how current time is supplied by
+    # QuickTime and other systems which have non-frame-based timescales)
     def from_seconds(seconds_float, the_fps = DEFAULT_FPS)
       total_frames = (seconds_float.to_f * the_fps.to_f).ceil
       new(total_frames, the_fps)
@@ -288,10 +288,10 @@ class Timecode
     hrs = (mins/60).floor
     mins-= (hrs*60)
   
+    raise RangeError, "Timecode cannot be longer that 99 hrs" if hrs > 99 
     raise RangeError, "More than 59 minutes" if mins > 59 
     raise RangeError, "More than 59 seconds" if secs > 59
     raise TimecodeLibError, "More than #{@fps.to_s} frames (#{frames}) in the last second" if frames >= @fps
-    raise RangeError, "Timecode cannot be longer that 99 hrs" if hrs > 99 
   
     [hrs, mins, secs, frames]
   end

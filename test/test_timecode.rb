@@ -96,7 +96,7 @@ class TimecodeTest < Test::Unit::TestCase
     assert_equal Timecode.new(25 * 60 * 60 * 3), Timecode.parse("3h")
   end
   
-  def test_parse_block
+  def test_parse_from_elements
     assert_equal '01:00:00:04', Timecode.parse("1h 4f").to_s
     assert_equal '01:00:00:04', Timecode.parse("4f 1h").to_s
     assert_equal '01:00:01:04', Timecode.parse("29f 1h").to_s
