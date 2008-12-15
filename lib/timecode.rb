@@ -63,10 +63,6 @@ class Timecode
       parse(input) rescue new(0, with_fps)
     end
       
-    # Parse with calculation
-    def parse_with_calculation
-    end
-    
     # Parse timecode entered by the user. Will raise if the string cannot be parsed.
     def parse(input, with_fps = DEFAULT_FPS)
       # Drop frame goodbye
@@ -147,15 +143,7 @@ class Timecode
     end
   end
   
-  # convert TC to fixnum
-  def to_f
-    @total
-  end
-  
-  def to_i
-    @total
-  end
-  
+  # is the timecode at 00:00:00:00
   def zero?
     @total.zero?
   end
@@ -210,11 +198,12 @@ class Timecode
     "%02d:%02d:%02d:%02d" % _nudge
   end
   
-  # get countable total frames
+  # get total frames as float
   def to_f
     @total
   end
-  
+
+  # get total frames as integer
   def to_i
     @total
   end
@@ -276,12 +265,12 @@ class Timecode
     secs -= (mins*60)
     hrs = (mins/60).floor
     mins-= (hrs*60)
-    
+  
     raise RangeError, "More than 59 minutes" if mins > 59 
     raise RangeError, "More than 59 seconds" if secs > 59
     raise TimecodeLibError, "More than #{@fps.to_s} frames (#{frames}) in the last second" if frames >= @fps
     raise RangeError, "Timecode cannot be longer that 99 hrs" if hrs > 99 
-    
+  
     [hrs, mins, secs, frames]
   end
   

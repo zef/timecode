@@ -129,10 +129,10 @@ class TimecodeTest < Test::Unit::TestCase
     assert_equal "00:00:07:02", tc.to_s
   end
   
-  def test_parse_with_calculation
-    tc = Timecode.parse_with_calculation("00:00:00:15 +2f")
-    assert_equal Timecode.new(17), tc
-  end
+#  def test_parse_with_calculation
+#    tc = Timecode.parse_with_calculation("00:00:00:15 +2f")
+#    assert_equal Timecode.new(17), tc
+#  end
   
   def test_from_seconds
     fraction = 7.1
