@@ -8,7 +8,7 @@
 # You can calculate in timecode objects ass well as with conventional integers and floats.
 # Timecode is immutable and can be used as a value object.
 #
-# Here's how to use it with ActiveRecord
+# Here's how to use it with ActiveRecord (your column names will be source_tc_frames_total and tape_fps)
 #
 #   composed_of :source_tc, :class_name => 'Timecode',
 #     :mapping => [%w(source_tc_frames total), %w(tape_fps fps)]
