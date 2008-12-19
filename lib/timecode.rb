@@ -1,6 +1,4 @@
-# Timecode is a convenience object for calculating SMPTE timecode natively. It is used in
-# various StoryTool models and templates, offers string output and is immutable.
-#
+# Timecode is a convenience object for calculating SMPTE timecode natively. 
 # The promise is that you only have to store two values to know the timecode - the amount
 # of frames and the framerate. An additional perk might be to save the dropframeness,
 # but we avoid that at this point.
@@ -74,6 +72,8 @@ class Timecode
   def inspect # :nodoc:
     super.gsub(/@fps/, self.to_s + ' @fps').gsub(/ @value=\[(.+)\],/, '')
   end
+  
+  TIME_FIELDS = 7 # :nodoc:
   
   class << self
     
@@ -162,6 +162,18 @@ class Timecode
       total_frames = (seconds_float.to_f * the_fps.to_f).ceil
       new(total_frames, the_fps)
     end
+  
+    
+    # Some systems (like SGIs) and DPX format store timecode as unsigned integer, bit-packed
+    def from_uint(uint)
+      shift = 4 * TIME_FIELDS
+      tc_elements = (0..TIME_FIELDS).map do 
+        part = ((uint >> shift) & 0x0F)
+        shift -= 4
+        part
+      end.join.scan(/(\d{2})/).flatten.map{|e| e.to_i}
+      at(*tc_elements)
+    end
   end
   
   # is the timecode at 00:00:00:00
@@ -202,6 +214,16 @@ class Timecode
   # get frame interval in fractions of a second
   def frame_interval
     1.0/@fps
+  end
+  
+  # get the timecode as bit-packed unsigned int (suitable for DPX and SGI)
+  def to_uint
+    elements = (("%02d" * 4) % [hours,minutes,seconds,frames]).split(//).map{|e| e.to_i }
+    uint = 0
+    elements.each do | el | 
+      uint = ((uint >> el))
+    end
+    uint
   end
   
   # Convert to different framerate based on the total frames. Therefore,
