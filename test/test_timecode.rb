@@ -134,6 +134,16 @@ class TimecodeTest < Test::Unit::TestCase
 #   assert_equal Timecode.new(17), tc
 # end
   
+  def test_from_uint
+    uint, tc = 87310853, Timecode.at(5,34,42,5)
+    assert_equal tc, Timecode.from_uint(uint)
+  end
+  
+  def test_to_uint
+    uint, tc = 87310853, Timecode.at(5,34,42,5)
+    assert_equal uint, tc.to_uint
+  end
+  
   def test_from_seconds
     fraction = 7.1
     tc = Timecode.from_seconds(fraction, 10)

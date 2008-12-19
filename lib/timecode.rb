@@ -12,7 +12,7 @@
 #     :mapping => [%w(source_tc_frames total), %w(tape_fps fps)]
 
 class Timecode
-  VERSION = '0.1.0'
+  VERSION = '0.1.1'
 
   include Comparable
   DEFAULT_FPS = 25
@@ -165,13 +165,14 @@ class Timecode
   
     
     # Some systems (like SGIs) and DPX format store timecode as unsigned integer, bit-packed
-    def from_uint(uint)
+    def from_uint(uint, fps = DEFAULT_FPS)
       shift = 4 * TIME_FIELDS
       tc_elements = (0..TIME_FIELDS).map do 
         part = ((uint >> shift) & 0x0F)
         shift -= 4
         part
       end.join.scan(/(\d{2})/).flatten.map{|e| e.to_i}
+      tc_elements << fps
       at(*tc_elements)
     end
   end
