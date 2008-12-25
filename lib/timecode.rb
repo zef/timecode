@@ -32,9 +32,6 @@ class Timecode
   # Self-explanatory
   class NonPositiveFps < RangeError; end
 
-  # Gets raised when float frame count is passed
-  class FrameIsWhole < RangeError; end
-
   # Gets raised when you divide by zero
   class TcIsZero < ZeroDivisionError; end
 
