@@ -7,6 +7,10 @@ require 'active_support'
 
 class TimecodeTest < Test::Unit::TestCase
   
+  def test_timecode_with_nil_gives_zero
+    assert_equal Timecode.new(0), Timecode.new(nil)
+  end
+  
   def test_fps_always_coerced_to_float
     t = Timecode.new(10, 25)
     assert_kind_of Float, t.fps
@@ -100,6 +104,10 @@ class TimecodeTest < Test::Unit::TestCase
     assert !Timecode.new(1000).zero?
   end
   
+end
+
+class TestParsing < Test::Unit::TestCase
+  
   def test_parse_from_numbers
     assert_equal Timecode.new(10), Timecode.parse("10")
     assert_equal Timecode.new(60), Timecode.parse("210")
@@ -135,10 +143,6 @@ class TimecodeTest < Test::Unit::TestCase
     assert_equal "00:00:02:00", tc.to_s
   end
   
-  def test_timecode_with_nil_gives_zero
-    assert_equal Timecode.new(0), Timecode.new(nil)
-  end
-  
   def test_parse_fractional_tc
     fraction = "00:00:07.1"
     tc = Timecode.parse_with_fractional_seconds(fraction, 10)
@@ -162,16 +166,6 @@ class TimecodeTest < Test::Unit::TestCase
 #   assert_equal Timecode.new(17), tc
 # end
   
-  def test_from_uint
-    uint, tc = 87310853, Timecode.at(5,34,42,5)
-    assert_equal tc, Timecode.from_uint(uint)
-  end
-  
-  def test_to_uint
-    uint, tc = 87310853, Timecode.at(5,34,42,5)
-    assert_equal uint, tc.to_uint
-  end
-  
   def test_from_seconds
     fraction = 7.1
     tc = Timecode.from_seconds(fraction, 10)
@@ -184,5 +178,17 @@ class TimecodeTest < Test::Unit::TestCase
     fraction = 7.16
     tc = Timecode.from_seconds(fraction, 12.5)
     assert_equal "00:00:07:02", tc.to_s
+  end
+end
+
+class TestUintConversion < Test::Unit::TestCase
+  def test_from_uint
+    uint, tc = 87310853, Timecode.at(5,34,42,5)
+    assert_equal tc, Timecode.from_uint(uint)
+  end
+  
+  def test_to_uint
+    uint, tc = 87310853, Timecode.at(5,34,42,5)
+    assert_equal uint, tc.to_uint
   end
 end

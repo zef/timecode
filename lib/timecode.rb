@@ -217,12 +217,12 @@ class Timecode
     1.0/@fps
   end
   
-  # get the timecode as bit-packed unsigned int (suitable for DPX and SGI)
+  # get the timecode as bit-packed unsigned 32 bit int (suitable for DPX and SGI)
   def to_uint
     elements = (("%02d" * 4) % [hours,minutes,seconds,frames]).split(//).map{|e| e.to_i }
     uint = 0
-    elements.each do | el | 
-      uint = ((uint >> el))
+    elements.reverse.each_with_index do | p, i |
+      uint |= p << 4 * i 
     end
     uint
   end
