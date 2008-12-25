@@ -1,13 +1,13 @@
-=== 1.0.3 / 2008-12-25
+=== 0.1.2 / 2008-12-25
 
 * Fix to_uint
 * Always use float frame rates and rely on a small delta for comparison
 
-=== 1.0.1 / 2008-12-15
+=== 0.1.1 / 2008-12-15
 
 * Allow passing framerate to from_uint
 
-=== 1.0.0 / 2008-12-15
+=== 0.1.0 / 2008-12-15
 
 * 1 major enhancement
 
