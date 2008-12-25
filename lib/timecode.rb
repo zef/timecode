@@ -80,6 +80,10 @@ class Timecode
     end
       
     # Parse timecode entered by the user. Will raise if the string cannot be parsed.
+    # The following formats are supported:
+    # * 10h 20m 10s 1f (or any combination thereof) - will be disassembled to hours, frames, seconds and so on automatically
+    # * 123 - will be parsed as 00:00:01:23
+    # * 00:00:00:00 - will be parsed as zero TC
     def parse(input, with_fps = DEFAULT_FPS)
       # Drop frame goodbye
       raise TimecodeLibError, "We do not support drop frame" if (input =~ /\;/)
