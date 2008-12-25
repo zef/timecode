@@ -73,8 +73,26 @@ class TimecodeTest < Test::Unit::TestCase
     end
 
   end
-    
-  def test_parse
+  
+  def test_succ
+    assert_equal Timecode.new(23), Timecode.new(22).succ
+  end
+  
+  def test_zero
+    assert Timecode.new(0).zero?
+    assert !Timecode.new(1).zero?
+    assert !Timecode.new(1000).zero?
+  end
+  
+  def test_plus
+    a, b = Timecode.new(24, 25.000000000000001), Timecode.new(22, 25.000000000000002)
+    assert_equal Timecode.new(24 + 22, 25.000000000000001), (a + b)
+  end
+end
+
+class TestParsing < Test::Unit::TestCase
+
+  def test_parse_simple
     simple_tc = "00:10:34:10"
     
     assert_nothing_raised do
@@ -93,20 +111,6 @@ class TimecodeTest < Test::Unit::TestCase
       Timecode.parse(bad_tc, 25)
     end
   end
-  
-  def test_succ
-    assert_equal Timecode.new(23), Timecode.new(22).succ
-  end
-  
-  def test_zero
-    assert Timecode.new(0).zero?
-    assert !Timecode.new(1).zero?
-    assert !Timecode.new(1000).zero?
-  end
-  
-end
-
-class TestParsing < Test::Unit::TestCase
   
   def test_parse_from_numbers
     assert_equal Timecode.new(10), Timecode.parse("10")
