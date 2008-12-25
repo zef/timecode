@@ -12,10 +12,12 @@
 #     :mapping => [%w(source_tc_frames total), %w(tape_fps fps)]
 
 class Timecode
-  VERSION = '0.1.1'
+  VERSION = '0.1.2'
 
   include Comparable
-  DEFAULT_FPS = 25
+  
+  DEFAULT_FPS = 25.0
+  ALLOWED_FPS_DELTA = 0.001
   COMPLETE_TC_RE = /^(\d{1,2}):(\d{1,2}):(\d{1,2}):(\d{1,2})$/
   
   # All Timecode lib errors inherit from this
@@ -58,19 +60,17 @@ class Timecode
   end
   
   def initialize(total = 0, fps = DEFAULT_FPS) # :nodoc:
-    if total.is_a?(Float)
-      raise FrameIsWhole, "the number of frames cannot be partial (Integer value needed)"
-    end
-    
     raise RangeError, "Timecode cannot be negative" if total.to_f < 0
     raise WrongFramerate, "FPS cannot be zero" if fps.zero?
-    @total, @fps = total, fps 
+
+    # Always cast framerate to float, and num of rames to integer
+    @total, @fps = total.to_i, fps.to_f
     @value = validate!
     freeze
   end
   
   def inspect # :nodoc:
-    super.gsub(/@fps/, self.to_s + ' @fps').gsub(/ @value=\[(.+)\],/, '')
+    "#<Timecode:%s (%dF@%.2f)>" % [to_s, total, fps]
   end
   
   TIME_FIELDS = 7 # :nodoc:
@@ -292,13 +292,19 @@ class Timecode
   
   # Timecodes can be compared to each other
   def <=>(other_tc)
-    if other_tc.is_a?(Timecode)
-      self.total <=> other_tc.class.new(other_tc.total, self.fps).total
+    if other_tc.is_a?(Timecode) && framerate_in_delta(fps, other_tc.fps)
+      self.total <=> other_tc.total
     else
       self.total <=> other_tc
     end
   end
-
+  
+  
+  # Validate that framerates are within a small delta deviation considerable for floats
+  def framerate_in_delta(one, two)
+    (one.to_f - two.to_f).abs <= ALLOWED_FPS_DELTA
+  end
+  
   private
   
   # Formats the actual timecode output from the number of frames

@@ -7,6 +7,33 @@ require 'active_support'
 
 class TimecodeTest < Test::Unit::TestCase
   
+  def test_fps_always_coerced_to_float
+    t = Timecode.new(10, 25)
+    assert_kind_of Float, t.fps
+
+    t = Timecode.new(10, 25.0)
+    assert_kind_of Float, t.fps
+  end
+  
+  def test_framerate_in_delta
+    tc = Timecode.new(1)
+    assert tc.framerate_in_delta(25.0000000000000001, 25.0000000000000003)
+  end
+
+  def test_equality_validated_based_on_deltas
+    t1, t2 = Timecode.new(10, 25.0000000000000000000000000001), Timecode.new(10, 25.0000000000000000000000000002)
+    assert t1 == t2
+  end
+  
+  def test_inspect
+    tc = Timecode.new(10, 25)
+    assert_equal "#<Timecode:00:00:00:10 (10F@25.00)>", tc.inspect
+  end
+  
+  def test_equality_on_succ
+    assert_equal Timecode.parse("05:43:02:01"), Timecode.parse("05:43:02:00").succ 
+  end
+  
   def test_basics
     five_seconds_of_pal = 5.seconds * 25
     tc = Timecode.new(five_seconds_of_pal, 25)
@@ -84,8 +111,9 @@ class TimecodeTest < Test::Unit::TestCase
   end
   
   def test_parse_s
-    assert_equal Timecode.new(50), Timecode.parse("2s")
-    assert_equal Timecode.new(60), Timecode.parse("2s", 30)
+    assert_equal Timecode.new(50, 25), Timecode.parse("2s", 25)
+    assert_equal Timecode.new(60, 30), Timecode.parse("2s", 30)
+    assert_not_equal Timecode.new(60, 25), Timecode.parse("2s", 30)
   end
 
   def test_parse_m
