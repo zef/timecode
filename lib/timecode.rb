@@ -251,7 +251,7 @@ class Timecode
   
   # add number of frames (or another timecode) to this one
   def +(arg)
-    if (arg.is_a?(Timecode) && arg.fps == @fps)
+    if (arg.is_a?(Timecode) && framerate_in_delta(arg.fps, @fps))
       Timecode.new(@total+arg.total, @fps)
     elsif (arg.is_a?(Timecode))
       raise WrongFramerate, "You are calculating timecodes with different framerates"
@@ -262,7 +262,7 @@ class Timecode
   
   # Subtract a number of frames
   def -(arg)
-    if (arg.is_a?(Timecode) &&  arg.fps == @fps)
+    if (arg.is_a?(Timecode) &&  framerate_in_delta(arg.fps, @fps))
       Timecode.new(@total-arg.total, @fps)
     elsif (arg.is_a?(Timecode))
       raise WrongFramerate, "You are calculating timecodes with different framerates"
@@ -279,7 +279,7 @@ class Timecode
   
   # Get the next frame
   def succ
-    self.class.new(@total + 1)
+    self.class.new(@total + 1, @fps)
   end
   
   # Slice the timespan in pieces
