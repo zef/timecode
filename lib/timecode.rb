@@ -12,7 +12,7 @@
 #     :mapping => [%w(source_tc_frames total), %w(tape_fps fps)]
 
 class Timecode
-  VERSION = '0.1.2'
+  VERSION = '0.1.3'
 
   include Comparable
   
@@ -300,6 +300,13 @@ class Timecode
     end
   end
   
+  # FFmpeg expects a fraction of a second as the last element instead of number of frames. Use this
+  # method to get the timecode that adheres to that expectation
+  def with_frames_as_fraction
+    actual_frames = value_parts[-1]
+    sec_offset = (100.0 / @fps) * actual_frames.to_f
+    "%02d:%02d:%02d.%02d" % [value_parts[0], value_parts[1], value_parts[2], sec_offset]
+  end
   
   # Validate that framerates are within a small delta deviation considerable for floats
   def framerate_in_delta(one, two)

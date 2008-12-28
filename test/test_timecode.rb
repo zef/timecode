@@ -88,6 +88,12 @@ class TimecodeTest < Test::Unit::TestCase
     a, b = Timecode.new(24, 25.000000000000001), Timecode.new(22, 25.000000000000002)
     assert_equal Timecode.new(24 + 22, 25.000000000000001), (a + b)
   end
+  
+  def test_tc_with_frames_as_fraction
+    tc = Timecode.new(100 -1, fps = 25)
+    assert_equal 24, tc.frames
+    assert_equal "00:00:03.96", tc.with_frames_as_fraction
+  end
 end
 
 class TestParsing < Test::Unit::TestCase
