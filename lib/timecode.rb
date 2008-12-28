@@ -303,9 +303,9 @@ class Timecode
   # FFmpeg expects a fraction of a second as the last element instead of number of frames. Use this
   # method to get the timecode that adheres to that expectation
   def with_frames_as_fraction
-    actual_frames = value_parts[-1]
-    sec_offset = (100.0 / @fps) * actual_frames.to_f
-    "%02d:%02d:%02d.%02d" % [value_parts[0], value_parts[1], value_parts[2], sec_offset]
+    vp = value_parts.dup
+    sec_offset = (100.0 / @fps) * vp.pop
+    "%02d:%02d:%02d.%02d" % (vp + [sec_offset])
   end
   alias_method :with_fractional_seconds, :with_frames_as_fraction
   
