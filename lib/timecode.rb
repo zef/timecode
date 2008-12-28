@@ -304,8 +304,8 @@ class Timecode
   # method to get the timecode that adheres to that expectation
   def with_frames_as_fraction
     vp = value_parts.dup
-    sec_offset = (100.0 / @fps) * vp.pop
-    "%02d:%02d:%02d.%02d" % (vp + [sec_offset])
+    vp[-1] = (100.0 / @fps) * vp[-1]
+    "%02d:%02d:%02d.%02d" % vp
   end
   alias_method :with_fractional_seconds, :with_frames_as_fraction
   
