@@ -307,6 +307,7 @@ class Timecode
     sec_offset = (100.0 / @fps) * actual_frames.to_f
     "%02d:%02d:%02d.%02d" % [value_parts[0], value_parts[1], value_parts[2], sec_offset]
   end
+  alias_method :with_fractional_seconds, :with_frames_as_fraction
   
   # Validate that framerates are within a small delta deviation considerable for floats
   def framerate_in_delta(one, two)
