@@ -145,6 +145,8 @@ class Timecode
       new(total, with_fps)
     end
     
+    # Parse a timecode with fractional seconds instead of frames. This is how ffmpeg reports
+    # a timecode
     def parse_with_fractional_seconds(tc_with_fractions_of_second, fps = DEFAULT_FPS)
       fraction_expr = /\.(\d+)$/
       fraction_part = ('.' + tc_with_fractions_of_second.scan(fraction_expr)[0][0]).to_f
@@ -157,22 +159,20 @@ class Timecode
       parse(tc_with_frameno, fps)
     end
   
-    # create a timecode from seconds. Seconds can be float (this is how current time is supplied by
-    # QuickTime and other systems which have non-frame-based timescales)
+    # create a timecode from the number of seconds. This is how current time is supplied by
+    # QuickTime and other systems which have non-frame-based timescales
     def from_seconds(seconds_float, the_fps = DEFAULT_FPS)
       total_frames = (seconds_float.to_f * the_fps.to_f).ceil
       new(total_frames, the_fps)
     end
   
-    
-    # Some systems (like SGIs) and DPX format store timecode as unsigned integer, bit-packed
+    # Some systems (like SGIs) and DPX format store timecode as unsigned integer, bit-packed. This method
+    # unpacks such an integer into a timecode.
     def from_uint(uint, fps = DEFAULT_FPS)
-      shift = 4 * TIME_FIELDS
-      tc_elements = (0..TIME_FIELDS).map do 
-        part = ((uint >> shift) & 0x0F)
-        shift -= 4
-        part
+      tc_elements = (0..7).to_a.reverse.map do | multiplier | 
+        ((uint >> (multiplier * 4)) & 0x0F)
       end.join.scan(/(\d{2})/).flatten.map{|e| e.to_i}
+
       tc_elements << fps
       at(*tc_elements)
     end
