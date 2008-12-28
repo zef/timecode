@@ -301,7 +301,9 @@ class Timecode
   end
   
   # FFmpeg expects a fraction of a second as the last element instead of number of frames. Use this
-  # method to get the timecode that adheres to that expectation
+  # method to get the timecode that adheres to that expectation. The return of this method can be fed
+  # to ffmpeg directly.
+  #  Timecode.parse("00:00:10:24", 25).with_frames_as_fraction #=> "00:00:10.96"
   def with_frames_as_fraction
     vp = value_parts.dup
     vp[-1] = (100.0 / @fps) * vp[-1]
