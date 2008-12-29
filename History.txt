@@ -1,6 +1,7 @@
 === 0.1.3 / 2008-12-25
 
-* Implement the format FFmpeg uses
+* Implement the format FFmpeg uses (fractional seconds instead of frames)
+* Some formatting/doc improvements
 
 === 0.1.2 / 2008-12-25
 
