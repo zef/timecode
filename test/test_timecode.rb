@@ -2,8 +2,6 @@ require 'test/unit'
 require 'rubygems'
 require 'timecode'
 
-# for Fixnum#hours
-require 'active_support'
 
 class TimecodeTest < Test::Unit::TestCase
   
@@ -39,7 +37,8 @@ class TimecodeTest < Test::Unit::TestCase
   end
   
   def test_basics
-    five_seconds_of_pal = 5.seconds * 25
+    five_seconds_of_pal = 5 * 25
+
     tc = Timecode.new(five_seconds_of_pal, 25)
     assert_equal 0, tc.hours
     assert_equal 0, tc.minutes
@@ -48,7 +47,7 @@ class TimecodeTest < Test::Unit::TestCase
     assert_equal five_seconds_of_pal, tc.total
     assert_equal "00:00:05:00", tc.to_s
     
-    one_and_a_half_hour_of_hollywood = 90.minutes * 24
+    one_and_a_half_hour_of_hollywood = (90 * 60) * 24
 
     film_tc = Timecode.new(one_and_a_half_hour_of_hollywood, 24)
     assert_equal 1, film_tc.hours
@@ -65,7 +64,7 @@ class TimecodeTest < Test::Unit::TestCase
       tc + film_tc
     end
     
-    two_seconds_and_five_frames_of_pal = ((2.seconds * 25) + 5)
+    two_seconds_and_five_frames_of_pal = ((2 * 25) + 5)
     pal_tc = Timecode.new(two_seconds_and_five_frames_of_pal, 25)
     assert_nothing_raised do
       added_tc = pal_tc + tc
