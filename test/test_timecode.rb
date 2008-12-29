@@ -1,6 +1,5 @@
 require 'test/unit'
-require 'rubygems'
-require 'timecode'
+require File.dirname(__FILE__) + '/../lib/timecode'
 
 
 class TimecodeTest < Test::Unit::TestCase
