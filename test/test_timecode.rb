@@ -78,6 +78,7 @@ class TimecodeTest < Test::Unit::TestCase
   
   def test_zero
     assert Timecode.new(0).zero?
+    assert Timecode.parse("00:00:00:00").zero?
     assert !Timecode.new(1).zero?
     assert !Timecode.new(1000).zero?
   end
