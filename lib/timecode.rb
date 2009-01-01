@@ -17,10 +17,18 @@ class Timecode
   include Comparable
   
   DEFAULT_FPS = 25.0
-  ALLOWED_FPS_DELTA = 0.001
-  COMPLETE_TC_RE = /^(\d{1,2}):(\d{1,2}):(\d{1,2}):(\d{1,2})$/
+  
+  #:stopdoc:
+  NTSC_FPS = (30.0 * 1000 / 1001).freeze
+  ALLOWED_FPS_DELTA = (0.001).freeze
+  
+  COMPLETE_TC_RE = /^(\d{2}):(\d{2}):(\d{2}):(\d{2})$/
+  DF_TC_RE = /^(\d{1,2}):(\d{1,2}):(\d{1,2});(\d{2})$/
+  FRACTIONAL_TC_RE = /^(\d{2}):(\d{2}):(\d{2}).(\d{1,8})$/
+  
   WITH_FRACTIONS_OF_SECOND = "%02d:%02d:%02d.%02d"
   WITH_FRAMES = "%02d:%02d:%02d:%02d"
+  #:startdoc:
   
   # All Timecode lib errors inherit from this
   class Error < RuntimeError; end
@@ -146,7 +154,7 @@ class Timecode
       seconds_per_frame = 1.0 / fps.to_f
       frame_idx = (fraction_part / seconds_per_frame).floor
 
-      tc_with_frameno = tc_with_fractions_of_second.gsub(fraction_expr, ":#{frame_idx}")
+      tc_with_frameno = tc_with_fractions_of_second.gsub(fraction_expr, ":%02d" % frame_idx)
 
       parse(tc_with_frameno, fps)
     end
