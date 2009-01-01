@@ -26,6 +26,10 @@ class TimecodeTest < Test::Unit::TestCase
     assert t1 == t2
   end
   
+  def test_to_i_is_total
+    assert_equal 10, Timecode.new(10).to_i
+  end
+  
   def test_inspect
     tc = Timecode.new(10, 25)
     assert_equal "#<Timecode:00:00:00:10 (10F@25.00)>", tc.inspect
@@ -83,9 +87,74 @@ class TimecodeTest < Test::Unit::TestCase
     assert !Timecode.new(1000).zero?
   end
   
+  def test_timecode_rangeable
+    r = Timecode.new(10)...Timecode.new(20)
+    assert_equal 10, r.to_a.length
+    assert_equal Timecode.new(14), r.to_a[4]
+  end
+  
+  def test_frame_interval
+    tc = Timecode.new(10)
+    assert_in_delta tc.frame_interval, 0.04, 0.0001
+
+    tc = Timecode.new(10, 30)
+    assert_in_delta tc.frame_interval, 0.03333, 0.0001
+  end
+end
+
+class ConversionTest < Test::Unit::TestCase
+  def test_convert_25_at_24
+    tc = Timecode.new(40, 25)
+    at24 = tc.convert(24)
+    assert_equal tc.total, at24.total
+  end
+end
+
+class CalculationsTest < Test::Unit::TestCase
   def test_plus
     a, b = Timecode.new(24, 25.000000000000001), Timecode.new(22, 25.000000000000002)
     assert_equal Timecode.new(24 + 22, 25.000000000000001), (a + b)
+  end
+  
+  def test_plus_with_different_framerates_should_raise
+    assert_raise(Timecode::WrongFramerate) { Timecode.new(10, 25) + Timecode.new(10, 30) }
+  end
+
+  def test_plus_with_int_gives_a_timecode
+    assert_equal Timecode.new(10), Timecode.new(5) + 5
+  end
+  
+  def test_min
+    a, b = Timecode.new(10), Timecode.new(4)
+    assert_equal Timecode.new(6), a - b
+  end
+
+  def test_min_with_int_gives_a_timecode
+    assert_equal Timecode.new(10), Timecode.new(15) - 5
+  end
+
+  def test_min_with_different_framerates_should_raise
+    assert_raise(Timecode::WrongFramerate) { Timecode.new(10, 25) - Timecode.new(10, 30) }
+  end
+  
+  def test_mult
+    assert_equal Timecode.new(100), Timecode.new(10) * 10
+  end
+  
+  def test_mult_by_neg_number_should_raise
+    assert_raise(Timecode::RangeError) { Timecode.new(10) * -200 }
+  end
+  
+  def test_div_by_int_gives_a_timecode
+    v = Timecode.new(200) / 20
+    assert_kind_of Timecode, v
+    assert_equal Timecode.new(10), v
+  end
+
+  def test_div_by_timecode_gives_an_int
+    v = Timecode.new(200) / Timecode.new(20)
+    assert_kind_of Numeric, v
+    assert_equal 10, v
   end
   
   def test_tc_with_frames_as_fraction
@@ -99,7 +168,43 @@ class TimecodeTest < Test::Unit::TestCase
     tc = Timecode.new(25, 12.5)
     assert_equal "00:00:02:00", tc.to_s
   end
+
+  def test_from_seconds
+    fraction = 7.1
+    tc = Timecode.from_seconds(fraction, 10)
+    assert_equal "00:00:07:01", tc.to_s
+
+    fraction = 7.5
+    tc = Timecode.from_seconds(fraction, 10)
+    assert_equal "00:00:07:05", tc.to_s
+
+    fraction = 7.16
+    tc = Timecode.from_seconds(fraction, 12.5)
+    assert_equal "00:00:07:02", tc.to_s
+  end
+
+end
+
+class TestAt < Test::Unit::TestCase
   
+  def test_at_disallows_more_than_99_hrs
+    assert_nothing_raised { Timecode.at(99,0,0,0) }
+    assert_raise(Timecode::RangeError) { Timecode.at(100,0,0,0) }
+  end
+
+  def test_at_disallows_more_than_59_mins
+    assert_raise(Timecode::RangeError) { Timecode.at(1,60,0,0) }
+  end
+
+  def test_at_disallows_more_than_59_secs
+    assert_raise(Timecode::RangeError) { Timecode.at(1,0,60,0) }
+  end
+
+  def test_at_disallows_more_frames_than_framerate
+    assert_raise(Timecode::RangeError) { Timecode.at(1,0,60,25, 25) }
+    assert_raise(Timecode::RangeError) { Timecode.at(1,0,60,32, 30) }
+  end
+
 end
 
 class TestParsing < Test::Unit::TestCase
@@ -177,18 +282,16 @@ class TestParsing < Test::Unit::TestCase
 #   assert_equal Timecode.new(17), tc
 # end
   
-  def test_from_seconds
-    fraction = 7.1
-    tc = Timecode.from_seconds(fraction, 10)
-    assert_equal "00:00:07:01", tc.to_s
-
-    fraction = 7.5
-    tc = Timecode.from_seconds(fraction, 10)
-    assert_equal "00:00:07:05", tc.to_s
-
-    fraction = 7.16
-    tc = Timecode.from_seconds(fraction, 12.5)
-    assert_equal "00:00:07:02", tc.to_s
+  def test_soft_parse_does_not_raise_and_createz_zeroed_tc
+    assert_nothing_raised do 
+      tc = Timecode.soft_parse("Meaningless nonsense", 25)
+      assert tc.zero?
+    end
+  end
+  
+  def test_parse_raoses_on_improper_format
+    assert_raise(Timecode::CannotParse) { Timecode.parse("Meaningless nonsense", 25) }
+    assert_raise(Timecode::CannotParse) { Timecode.parse("", 25) }
   end
 end
 

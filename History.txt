@@ -1,7 +1,11 @@
+=== 0.1.4 / 2000-01-01
+
+* Expanded test coverage
+* Some formatting/doc improvements
+
 === 0.1.3 / 2008-12-25
 
 * Implement the format FFmpeg uses (fractional seconds instead of frames)
-* Some formatting/doc improvements
 
 === 0.1.2 / 2008-12-25
 

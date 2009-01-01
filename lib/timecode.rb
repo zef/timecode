@@ -12,13 +12,15 @@
 #     :mapping => [%w(source_tc_frames total), %w(tape_fps fps)]
 
 class Timecode
-  VERSION = '0.1.3'
+  VERSION = '0.1.4'
 
   include Comparable
   
   DEFAULT_FPS = 25.0
   ALLOWED_FPS_DELTA = 0.001
   COMPLETE_TC_RE = /^(\d{1,2}):(\d{1,2}):(\d{1,2}):(\d{1,2})$/
+  WITH_FRACTIONS_OF_SECOND = "%02d:%02d:%02d.%02d"
+  WITH_FRAMES = "%02d:%02d:%02d:%02d"
   
   # All Timecode lib errors inherit from this
   class Error < RuntimeError; end
@@ -44,19 +46,9 @@ class Timecode
   # Well well...
   class MethodRequiresTimecode < ArgumentError; end
   
-  # Initialize a new Timecode. If a string is passed, it will be parsed, an integer
+  # Initialize a new Timecode object with a certain amount of frames and a framerate
   # will be interpreted as the total number of frames
-  def self.new(total_or_string = 0, fps = DEFAULT_FPS)
-    if total_or_string.nil?
-      new(0, fps)
-    elsif total_or_string.is_a?(String)
-      parse(total_or_string, fps)
-    else
-      super(total_or_string, fps)
-    end
-  end
-  
-  def initialize(total = 0, fps = DEFAULT_FPS) # :nodoc:
+  def initialize(total = 0, fps = DEFAULT_FPS)
     raise RangeError, "Timecode cannot be negative" if total.to_f < 0
     raise WrongFramerate, "FPS cannot be zero" if fps.zero?
 
@@ -188,7 +180,7 @@ class Timecode
     to_f
   end
   
-  #get FPS
+  # get FPS
   def fps
     @fps
   end
@@ -231,16 +223,13 @@ class Timecode
   # Convert to different framerate based on the total frames. Therefore,
   # 1 second of PAL video will convert to 25 frames of NTSC (this 
   # is suitable for PAL to film TC conversions and back).
-  # It does not account for pulldown or anything in that sense, because
-  # then you need to think about cadences and such
   def convert(new_fps)
-    raise NonPositiveFps, "FPS cannot be less than 0" if new_fps < 1
-    self.class.new((total/fps)*new_fps, new_fps)
+    self.class.new(@total, new_fps)
   end
   
   # get formatted SMPTE timecode
   def to_s
-    "%02d:%02d:%02d:%02d" % value_parts
+    WITH_FRAMES % value_parts
   end
   
   # get total frames as float
@@ -286,9 +275,10 @@ class Timecode
     self.class.new(@total + 1, @fps)
   end
   
-  # Slice the timespan in pieces
+  # Get the number of times a passed timecode fits into this time span (if performed with Timecode) or 
+  # a Timecode that multiplied by arg will give this one
   def /(arg)
-    Timecode.new(@total/arg, @fps)
+    arg.is_a?(Timecode) ?  (@total / arg.total) : Timecode.new(@total /arg, @fps)
   end
   
   # Timecodes can be compared to each other
@@ -307,7 +297,7 @@ class Timecode
   def with_frames_as_fraction
     vp = value_parts.dup
     vp[-1] = (100.0 / @fps) * vp[-1]
-    "%02d:%02d:%02d.%02d" % vp
+    WITH_FRACTIONS_OF_SECOND % vp
   end
   alias_method :with_fractional_seconds, :with_frames_as_fraction
   
