@@ -39,21 +39,12 @@ class Timecode
   # Gets raised if timecode is out of range (like 100 hours long)
   class RangeError < Error; end
 
-  # Self-explanatory
-  class NonPositiveFps < RangeError; end
-
-  # Gets raised when you divide by zero
-  class TcIsZero < ZeroDivisionError; end
-
   # Gets raised when a timecode cannot be parsed
   class CannotParse < Error; end
 
   # Gets raised when you try to compute two timecodes with different framerates together
   class WrongFramerate < ArgumentError; end
 
-  # Well well...
-  class MethodRequiresTimecode < ArgumentError; end
-  
   # Initialize a new Timecode object with a certain amount of frames and a framerate
   # will be interpreted as the total number of frames
   def initialize(total = 0, fps = DEFAULT_FPS)
@@ -86,7 +77,7 @@ class Timecode
     # * 00:00:00:00 - will be parsed as zero TC
     def parse(input, with_fps = DEFAULT_FPS)
       # Drop frame goodbye
-      raise TimecodeLibError, "We do not support drop frame" if (input =~ /\;/)
+      raise Error, "We do not support drop frame" if (input =~ /\;/)
       
       hrs, mins, secs, frames = 0,0,0,0
       atoms = []
@@ -329,7 +320,7 @@ class Timecode
     raise RangeError, "Timecode cannot be longer that 99 hrs" if hrs > 99 
     raise RangeError, "More than 59 minutes" if mins > 59 
     raise RangeError, "More than 59 seconds" if secs > 59
-    raise TimecodeLibError, "More than #{@fps.to_s} frames (#{frames}) in the last second" if frames >= @fps
+    raise RangeError, "More than #{@fps.to_s} frames (#{frames}) in the last second" if frames >= @fps
   
     [hrs, mins, secs, frames]
   end

@@ -14,3 +14,7 @@ end.new('timecode', Timecode::VERSION) do |p|
   p.rubyforge_name = 'wiretap'
   p.remote_rdoc_dir = 'timecode'
 end
+
+task "specs" do
+  `specrb test/* --rdox > SPECS.txt`
+end

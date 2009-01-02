@@ -49,6 +49,7 @@
 * disallow more than 59 minutes
 * disallow more than 59 seconds
 * disallow more frames than what the framerate permits
+* propery accept usable values
 
 == Timecode.parse() should
 * handle complete SMPTE timecode
@@ -63,10 +64,11 @@
 * raise on improper format
 
 == Timecode.soft_parse should
+* parse the timecode
 * not raise on improper format and return zero TC instead
 
 == Timecode with unsigned integer conversions should
-* parse from an integer
-* should properly convert a timecode back to integer
+* parse from a 4x4bits packed 32bit unsigned int
+* properly convert itself back to 4x4 bits 32bit unsigned int
 
-46 specifications (79 requirements), 0 failures
+48 specifications (80 requirements), 0 failures

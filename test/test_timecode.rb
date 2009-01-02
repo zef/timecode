@@ -214,18 +214,17 @@ context "Timecode.at() should" do
     lambda{ Timecode.at(1,0,60,25, 25) }.should.raise(Timecode::RangeError)
     lambda{ Timecode.at(1,0,60,32, 30) }.should.raise(Timecode::RangeError)
   end
-
+  
+  specify "propery accept usable values" do
+    Timecode.at(20, 20, 10, 5).to_s.should.equal "20:20:10:05"
+  end
 end
 
 
 context "Timecode.parse() should" do
   
   specify "handle complete SMPTE timecode" do
-
     simple_tc = "00:10:34:10"
-    
-    lambda { Timecode.parse(simple_tc) }.should.not.raise
-    
     Timecode.parse(simple_tc).to_s.should.equal(simple_tc)
   end
   
@@ -289,6 +288,9 @@ context "Timecode.parse() should" do
 end
 
 context "Timecode.soft_parse should" do
+  specify "parse the timecode" do
+    Timecode.soft_parse('200').to_s.should.equal "00:00:02:00"
+  end
   
   specify "not raise on improper format and return zero TC instead" do
     lambda do
@@ -300,12 +302,12 @@ end
 
 context "Timecode with unsigned integer conversions should" do
   
-  specify "parse from an integer" do
+  specify "parse from a 4x4bits packed 32bit unsigned int" do
     uint, tc = 87310853, Timecode.at(5,34,42,5)
     Timecode.from_uint(uint).should.equal tc
   end
   
-  specify "should properly convert a timecode back to integer" do
+  specify "properly convert itself back to 4x4 bits 32bit unsigned int" do
     uint, tc = 87310853, Timecode.at(5,34,42,5)
     tc.to_uint.should.equal uint
   end
