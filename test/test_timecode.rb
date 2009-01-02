@@ -56,7 +56,6 @@ context "An existing Timecode should" do
     @five_seconds.should.respond_to :minutes
     @five_seconds.minutes.should.equal 0
     @film_tc.minutes.should.equal 30
-    
   end
 
   specify "support seconds" do
