@@ -82,8 +82,14 @@ class Timecode
       hrs, mins, secs, frames = 0,0,0,0
       atoms = []
       
+      # 00:00:00:00
+      if (input =~ COMPLETE_TC_RE)
+        atoms = input.scan(COMPLETE_TC_RE).to_a.flatten
+      # 00:00:00.0
+      elsif input =~ FRACTIONAL_TC_RE
+        parse_with_fractional_seconds(input, with_fps)
       # 10h 20m 10s 1f
-      if input =~ /\s/
+      elsif input =~ /\s/
         return input.split.map{|part|  parse(part, with_fps) }.inject { |sum, p| sum + p.total }
       # 10s
       elsif input =~ /^(\d+)s$/
@@ -104,8 +110,6 @@ class Timecode
         atoms.unshift [ints.pop, ints.pop].reverse.join.to_i
         atoms.unshift [ints.pop, ints.pop].reverse.join.to_i
         atoms.unshift [ints.pop, ints.pop].reverse.join.to_i
-      elsif (input =~ COMPLETE_TC_RE)
-        atoms = input.scan(COMPLETE_TC_RE).to_a.flatten
       else
         raise CannotParse, "Cannot parse #{input} into timecode, no match"
       end
