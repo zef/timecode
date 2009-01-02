@@ -5,3 +5,4 @@ SPECS.txt
 Rakefile
 lib/timecode.rb
 test/test_timecode.rb
+timecode.gemspec
