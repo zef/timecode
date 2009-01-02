@@ -1,6 +1,7 @@
 History.txt
 Manifest.txt
 README.txt
+SPECS.txt
 Rakefile
 lib/timecode.rb
 test/test_timecode.rb

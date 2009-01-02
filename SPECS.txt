@@ -1,0 +1,72 @@
+
+== Timecode on instantiation should
+* be instantable from int
+* always coerce FPS to float
+* create a zero TC with no arguments
+
+== An existing Timecode should
+* report that the framerates are in delta
+* validate equality based on delta
+* report total as it's to_i
+* support hours
+* support minutes
+* support seconds
+* support frames
+* report frame_interval as a float
+
+== A Timecode of zero should
+* properly respond to zero?
+
+== An existing TImecode on inspection should
+* properly present himself via inspect
+* properly print itself
+
+== An existing Timecode used within ranges should
+* properly provide successive value that is one frame up
+* work as a range member
+
+== A Timecode on conversion should
+* copy itself with a different framerate
+
+== A Timecode on calculations should
+* support addition
+* should raise on addition if framerates do not match
+* when added with an integer instead calculate on total
+* support subtraction
+* on subtraction of an integer instead calculate on total
+* raise when subtracting a Timecode with a different framerate
+* support multiplication
+* raise when the resultig Timecode is negative
+* yield a Timecode when divided by an Integer
+* yield a number when divided by another Timecode
+
+== A Timecode used with fractional number of seconds
+* should properly return fractional seconds
+* properly translate to frames when instantiated from fractional seconds
+
+== Timecode.at() should
+* disallow more than 99 hrs
+* disallow more than 59 minutes
+* disallow more than 59 seconds
+* disallow more frames than what the framerate permits
+
+== Timecode.parse() should
+* handle complete SMPTE timecode
+* refuse to handle timecode that is out of range for the framerate
+* parse a row of numbers as parts of a timecode starting from the right
+* parse a number with f suffix as frames
+* parse a number with s suffix as seconds
+* parse a number with m suffix as minutes
+* parse a number with h suffix as hours
+* parse different suffixes as a sum of elements
+* parse timecode with fractional second instead of frames
+* raise on improper format
+
+== Timecode.soft_parse should
+* not raise on improper format and return zero TC instead
+
+== Timecode with unsigned integer conversions should
+* parse from an integer
+* should properly convert a timecode back to integer
+
+46 specifications (79 requirements), 0 failures
