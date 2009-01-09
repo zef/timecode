@@ -226,6 +226,11 @@ context "Timecode.parse() should" do
     simple_tc = "00:10:34:10"
     Timecode.parse(simple_tc).to_s.should.equal(simple_tc)
   end
+
+  specify "handle complete SMPTE timecode via new" do
+    simple_tc = "00:10:34:10"
+    Timecode.new(simple_tc).to_s.should.equal(simple_tc)
+  end
   
   specify "refuse to handle timecode that is out of range for the framerate" do
     bad_tc = "00:76:89:30"

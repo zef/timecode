@@ -44,13 +44,14 @@ class Timecode
 
   # Gets raised when you try to compute two timecodes with different framerates together
   class WrongFramerate < ArgumentError; end
-
+  
   # Initialize a new Timecode object with a certain amount of frames and a framerate
   # will be interpreted as the total number of frames
   def initialize(total = 0, fps = DEFAULT_FPS)
-    raise RangeError, "Timecode cannot be negative" if total.to_f < 0
     raise WrongFramerate, "FPS cannot be zero" if fps.zero?
-
+    
+    # If total is a string, use parse
+    raise RangeError, "Timecode cannot be negative" if total.to_i < 0
     # Always cast framerate to float, and num of rames to integer
     @total, @fps = total.to_i, fps.to_f
     @value = validate!
@@ -64,6 +65,11 @@ class Timecode
   TIME_FIELDS = 7 # :nodoc:
   
   class << self
+    
+    # Use initialize for integers and parsing for strings
+    def new(from, fps = DEFAULT_FPS)
+      from.is_a?(String) ? parse(from, fps) : super(from, fps)
+    end
     
     # Parse timecode and return zero if none matched
     def soft_parse(input, with_fps = DEFAULT_FPS)
