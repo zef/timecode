@@ -62,8 +62,6 @@ class Timecode
     "#<Timecode:%s (%dF@%.2f)>" % [to_s, total, fps]
   end
   
-  TIME_FIELDS = 7 # :nodoc:
-  
   class << self
     
     # Use initialize for integers and parsing for strings
