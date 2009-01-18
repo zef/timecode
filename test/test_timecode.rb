@@ -219,6 +219,32 @@ context "Timecode.at() should" do
   end
 end
 
+context "A custom Timecode descendant should" do
+  class CustomTC < Timecode; end
+  
+  specify "properly classify on parse" do
+    CustomTC.parse("001").should.be.kind_of CustomTC
+  end
+
+  specify "properly classify on at" do
+    CustomTC.at(10,10,10,10).should.be.kind_of CustomTC
+  end
+
+  specify "properly  classify on calculations" do
+    computed = CustomTC.parse("10h") + Timecode.new(10)
+    computed.should.be.kind_of CustomTC
+
+    computed = CustomTC.parse("10h") - Timecode.new(10)
+    computed.should.be.kind_of CustomTC
+
+    computed = CustomTC.parse("10h") * 5
+    computed.should.be.kind_of CustomTC
+
+    computed = CustomTC.parse("10h") / 5
+    computed.should.be.kind_of CustomTC
+  end
+
+end
 
 context "Timecode.parse() should" do
   

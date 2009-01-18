@@ -252,29 +252,29 @@ class Timecode
   # add number of frames (or another timecode) to this one
   def +(arg)
     if (arg.is_a?(Timecode) && framerate_in_delta(arg.fps, @fps))
-      Timecode.new(@total+arg.total, @fps)
+      self.class.new(@total+arg.total, @fps)
     elsif (arg.is_a?(Timecode))
       raise WrongFramerate, "You are calculating timecodes with different framerates"
     else
-      Timecode.new(@total + arg, @fps)
+      self.class.new(@total + arg, @fps)
     end
   end
   
   # Subtract a number of frames
   def -(arg)
     if (arg.is_a?(Timecode) &&  framerate_in_delta(arg.fps, @fps))
-      Timecode.new(@total-arg.total, @fps)
+      self.class.new(@total-arg.total, @fps)
     elsif (arg.is_a?(Timecode))
       raise WrongFramerate, "You are calculating timecodes with different framerates"
     else
-      Timecode.new(@total-arg, @fps)
+      self.class.new(@total-arg, @fps)
     end
   end
   
   # Multiply the timecode by a number
   def *(arg)
     raise RangeError, "Timecode multiplier cannot be negative" if (arg < 0)
-    Timecode.new(@total*arg.to_i, @fps)
+    self.class.new(@total*arg.to_i, @fps)
   end
   
   # Get the next frame
@@ -285,7 +285,7 @@ class Timecode
   # Get the number of times a passed timecode fits into this time span (if performed with Timecode) or 
   # a Timecode that multiplied by arg will give this one
   def /(arg)
-    arg.is_a?(Timecode) ?  (@total / arg.total) : Timecode.new(@total /arg, @fps)
+    arg.is_a?(Timecode) ?  (@total / arg.total) : self.class.new(@total /arg, @fps)
   end
   
   # Timecodes can be compared to each other
