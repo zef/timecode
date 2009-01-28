@@ -1,6 +1,6 @@
 = timecode
 
-* http://wiretap.rubyforge.org/timecode
+* http://guerilla-di.rubyforge.org/timecode
 
 == DESCRIPTION:
 
