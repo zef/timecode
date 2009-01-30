@@ -111,6 +111,15 @@ context "An existing Timecode should" do
     tc.frame_interval.should.be.close 0.03333, 0.0001
   end
   
+  specify "be comparable" do
+    (Timecode.new(10) < Timecode.new(9)).should.equal false
+    (Timecode.new(9) < Timecode.new(10)).should.equal true
+    Timecode.new(9).should.equal Timecode.new(9)
+  end
+  
+  specify "raise on comparison of incompatible timecodes" do
+    lambda { Timecode.new(10, 10) < Timecode.new(10, 20)}.should.raise(Timecode::WrongFramerate)
+  end
 end
 
 context "A Timecode of zero should" do
@@ -318,6 +327,11 @@ context "Timecode.parse() should" do
     fraction = "00:00:07.16"
     tc = Timecode.parse_with_fractional_seconds(fraction, 12.5)
     tc.to_s.should.equal "00:00:07:02"
+  end
+  
+  specify "raise when trying to parse DF timecode" do
+    df_tc = "00:00:00;01"
+    lambda { Timecode.parse(df_tc)}.should.raise(Timecode::Error)
   end
   
   specify "raise on improper format" do

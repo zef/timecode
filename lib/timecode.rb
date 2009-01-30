@@ -33,9 +33,6 @@ class Timecode
   # All Timecode lib errors inherit from this
   class Error < RuntimeError; end
   
-  # Will be raised for functions that are not supported
-  class TimecodeLibError < Error; end
-
   # Gets raised if timecode is out of range (like 100 hours long)
   class RangeError < Error; end
 
@@ -81,7 +78,7 @@ class Timecode
     # * 00:00:00:00 - will be parsed as zero TC
     def parse(input, with_fps = DEFAULT_FPS)
       # Drop frame goodbye
-      raise Error, "We do not support drop frame" if (input =~ /\;/)
+      raise Error, "We do not support drop frame" if (input =~ DF_TC_RE)
       
       hrs, mins, secs, frames = 0,0,0,0
       atoms = []
@@ -290,10 +287,10 @@ class Timecode
   
   # Timecodes can be compared to each other
   def <=>(other_tc)
-    if other_tc.is_a?(Timecode) && framerate_in_delta(fps, other_tc.fps)
+    if framerate_in_delta(fps, other_tc.fps)
       self.total <=> other_tc.total
-    else
-      self.total <=> other_tc
+    else 
+      raise WrongFramerate, "Cannot compare timecodes with different framerates"
     end
   end
   
