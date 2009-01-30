@@ -5,9 +5,9 @@ require 'test/spec'
 require File.dirname(__FILE__) + '/../lib/timecode'
 
 
-context "Timecode on instantiation should" do
+context "Timecode.new() should" do
   
-  specify "be instantable from int" do
+  specify "instantiate from int" do
     tc = Timecode.new(10)
     tc.should.be.kind_of Timecode
     tc.total.should.equal 10
@@ -21,6 +21,41 @@ context "Timecode on instantiation should" do
   specify "create a zero TC with no arguments" do
     Timecode.new(nil).should.be.zero?
   end
+  
+  specify "accept full string SMPTE timecode as well" do
+    Timecode.new("00:25:30:10", 25).should.equal Timecode.parse("00:25:30:10")
+  end
+end
+
+context "Timecode.at() should" do 
+  
+  specify "disallow more than 99 hrs" do
+    lambda{ Timecode.at(99,0,0,0) }.should.not.raise
+    lambda{ Timecode.at(100,0,0,0) }.should.raise(Timecode::RangeError)
+  end
+  
+  specify "disallow more than 59 minutes" do
+    lambda{ Timecode.at(1,60,0,0) }.should.raise(Timecode::RangeError)
+  end
+
+  specify "disallow more than 59 seconds" do
+    lambda{ Timecode.at(1,0,60,0) }.should.raise(Timecode::RangeError)
+  end
+  
+  specify "disallow more frames than what the framerate permits" do
+    lambda{ Timecode.at(1,0,60,25, 25) }.should.raise(Timecode::RangeError)
+    lambda{ Timecode.at(1,0,60,32, 30) }.should.raise(Timecode::RangeError)
+  end
+  
+  specify "propery accept usable values" do
+    Timecode.at(20, 20, 10, 5).to_s.should.equal "20:20:10:05"
+  end
+end
+
+context "A new Timecode object should" do
+  specify "be frozen" do
+    Timecode.new(10).should.be.frozen
+  end
 end
 
 context "An existing Timecode should" do
@@ -30,7 +65,6 @@ context "An existing Timecode should" do
     @one_and_a_half_film = (90 * 60) * 24
     @film_tc = Timecode.new(@one_and_a_half_film, 24)
   end
-  
   
   specify "report that the framerates are in delta" do
     tc = Timecode.new(1)
@@ -90,6 +124,7 @@ end
 context "An existing TImecode on inspection should" do
   specify "properly present himself via inspect" do
     Timecode.new(10, 25).inspect.should.equal "#<Timecode:00:00:00:10 (10F@25.00)>"
+    Timecode.new(10, 12).inspect.should.equal "#<Timecode:00:00:00:10 (10F@12.00)>"
   end
   
   specify "properly print itself" do
@@ -100,7 +135,7 @@ end
 context "An existing Timecode used within ranges should" do
   specify "properly provide successive value that is one frame up" do
     Timecode.new(10).succ.total.should.equal 11
-    Timecode.new(22).succ.should.equal Timecode.new(23) 
+    Timecode.new(22, 45).succ.should.equal Timecode.new(23, 45) 
   end
   
   specify "work as a range member" do
@@ -155,13 +190,13 @@ context "A Timecode on calculations should" do
     lambda { Timecode.new(10) * -200 }.should.raise(Timecode::RangeError)
   end
   
-  specify "yield a Timecode when divided by an Integer" do
+  specify "return a Timecode when divided by an Integer" do
     v = Timecode.new(200) / 20
     v.should.be.kind_of(Timecode)
     v.should.equal Timecode.new(10)
   end
   
-  specify "yield a number when divided by another Timecode" do
+  specify "return a number when divided by another Timecode" do
     v = Timecode.new(200) / Timecode.new(20)
     v.should.be.kind_of(Numeric)
     v.should.equal 10
@@ -192,31 +227,6 @@ context "A Timecode used with fractional number of seconds" do
     tc.to_s.should.equal "00:00:07:02"
   end
 
-end
-
-context "Timecode.at() should" do 
-  
-  specify "disallow more than 99 hrs" do
-    lambda{ Timecode.at(99,0,0,0) }.should.not.raise
-    lambda{ Timecode.at(100,0,0,0) }.should.raise(Timecode::RangeError)
-  end
-  
-  specify "disallow more than 59 minutes" do
-    lambda{ Timecode.at(1,60,0,0) }.should.raise(Timecode::RangeError)
-  end
-
-  specify "disallow more than 59 seconds" do
-    lambda{ Timecode.at(1,0,60,0) }.should.raise(Timecode::RangeError)
-  end
-  
-  specify "disallow more frames than what the framerate permits" do
-    lambda{ Timecode.at(1,0,60,25, 25) }.should.raise(Timecode::RangeError)
-    lambda{ Timecode.at(1,0,60,32, 30) }.should.raise(Timecode::RangeError)
-  end
-  
-  specify "propery accept usable values" do
-    Timecode.at(20, 20, 10, 5).to_s.should.equal "20:20:10:05"
-  end
 end
 
 context "A custom Timecode descendant should" do
