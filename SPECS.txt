@@ -1,8 +1,19 @@
 
-== Timecode on instantiation should
-* be instantable from int
+== Timecode.new() should
+* instantiate from int
 * always coerce FPS to float
 * create a zero TC with no arguments
+* accept full string SMPTE timecode as well
+
+== Timecode.at() should
+* disallow more than 99 hrs
+* disallow more than 59 minutes
+* disallow more than 59 seconds
+* disallow more frames than what the framerate permits
+* propery accept usable values
+
+== A new Timecode object should
+* be frozen
 
 == An existing Timecode should
 * report that the framerates are in delta
@@ -13,6 +24,8 @@
 * support seconds
 * support frames
 * report frame_interval as a float
+* be comparable
+* raise on comparison of incompatible timecodes
 
 == A Timecode of zero should
 * properly respond to zero?
@@ -37,19 +50,12 @@
 * raise when subtracting a Timecode with a different framerate
 * support multiplication
 * raise when the resultig Timecode is negative
-* yield a Timecode when divided by an Integer
-* yield a number when divided by another Timecode
+* return a Timecode when divided by an Integer
+* return a number when divided by another Timecode
 
 == A Timecode used with fractional number of seconds
 * should properly return fractional seconds
 * properly translate to frames when instantiated from fractional seconds
-
-== Timecode.at() should
-* disallow more than 99 hrs
-* disallow more than 59 minutes
-* disallow more than 59 seconds
-* disallow more frames than what the framerate permits
-* propery accept usable values
 
 == A custom Timecode descendant should
 * properly classify on parse
@@ -67,6 +73,7 @@
 * parse a number with h suffix as hours
 * parse different suffixes as a sum of elements
 * parse timecode with fractional second instead of frames
+* raise when trying to parse DF timecode
 * raise on improper format
 
 == Timecode.soft_parse should
@@ -77,4 +84,4 @@
 * parse from a 4x4bits packed 32bit unsigned int
 * properly convert itself back to 4x4 bits 32bit unsigned int
 
-52 specifications (87 requirements), 0 failures
+57 specifications (95 requirements), 0 failures
