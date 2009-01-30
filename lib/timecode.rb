@@ -12,7 +12,7 @@
 #     :mapping => [%w(source_tc_frames total), %w(tape_fps fps)]
 
 class Timecode
-  VERSION = '0.1.6'
+  VERSION = '0.1.7'
 
   include Comparable
   
@@ -85,11 +85,12 @@ class Timecode
       
       # 00:00:00:00
       if (input =~ COMPLETE_TC_RE)
-        atoms = input.scan(COMPLETE_TC_RE).to_a.flatten
+        atoms_and_fps = input.scan(COMPLETE_TC_RE).to_a.flatten.map{|e| Integer(e)} + [with_fps]
+        return at(*atoms_and_fps)
       # 00:00:00.0
       elsif input =~ FRACTIONAL_TC_RE
         parse_with_fractional_seconds(input, with_fps)
-      # 10h 20m 10s 1f
+      # 10h 20m 10s 1f 00:00:00:01 - space separated is a sum of parts
       elsif input =~ /\s/
         return input.split.map{|part|  parse(part, with_fps) }.inject { |sum, p| sum + p.total }
       # 10s
@@ -104,24 +105,16 @@ class Timecode
       # 60f - 60 frames, or 2 seconds and 10 frames
       elsif input =~ /^(\d+)f$/i
         return new(input.to_i, with_fps)
-      # A bunch of integers
+      # Only a bunch of digits, treat 12345 as 00:01:23:45
       elsif (input =~ /^(\d+)$/)
-        ints = input.split(//)
-        atoms.unshift [ints.pop, ints.pop].reverse.join.to_i
-        atoms.unshift [ints.pop, ints.pop].reverse.join.to_i
-        atoms.unshift [ints.pop, ints.pop].reverse.join.to_i
-        atoms.unshift [ints.pop, ints.pop].reverse.join.to_i
+        atoms_len = 2 * 4
+        # left-pad input AND truncate if needed
+        padded = input[0..atoms_len].rjust(8, "0")
+        atoms = padded.scan(/(\d{2})/).flatten.map{|e| e.to_i } + [with_fps]
+        return at(*atoms)
       else
-        raise CannotParse, "Cannot parse #{input} into timecode, no match"
+        raise CannotParse, "Cannot parse #{input} into timecode, unknown format"
       end
-      
-      if atoms.any?
-        hrs, mins, secs, frames = atoms.map{|e| e.to_i}
-      else
-        raise CannotParse, "Cannot parse #{input} into timecode, atoms were empty"
-      end
-      
-      at(hrs, mins, secs, frames, with_fps)
     end
     
     # Initialize a Timecode object at this specfic timecode

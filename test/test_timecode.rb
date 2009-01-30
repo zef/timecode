@@ -130,7 +130,7 @@ context "A Timecode of zero should" do
   end
 end
 
-context "An existing TImecode on inspection should" do
+context "An existing Timecode on inspection should" do
   specify "properly present himself via inspect" do
     Timecode.new(10, 25).inspect.should.equal "#<Timecode:00:00:00:10 (10F@25.00)>"
     Timecode.new(10, 12).inspect.should.equal "#<Timecode:00:00:00:10 (10F@12.00)>"
@@ -265,7 +265,7 @@ context "A custom Timecode descendant should" do
 
 end
 
-context "Timecode.parse() should" do
+context "Timecode.parse should" do
   
   specify "handle complete SMPTE timecode" do
     simple_tc = "00:10:34:10"
@@ -309,6 +309,21 @@ context "Timecode.parse() should" do
     Timecode.parse("1h 4f").to_s.should.equal '01:00:00:04'
     Timecode.parse("4f 1h").to_s.should.equal '01:00:00:04'
     Timecode.parse("29f 1h").to_s.should.equal '01:00:01:04'
+    Timecode.parse("29f \n\n\n\n\n\    1h").to_s.should.equal '01:00:01:04'
+  end
+  
+  specify "parse a number of digits as timecode" do
+    Timecode.parse("00000001").to_s.should.equal "00:00:00:01"
+    Timecode.parse("1").to_s.should.equal "00:00:00:01"
+    Timecode.parse("10").to_s.should.equal "00:00:00:10"
+  end
+  
+  specify "truncate a large number to the parseable length" do
+    Timecode.parse("1000000000000000001").to_s.should.equal "10:00:00:00"
+  end
+
+  specify "left-pad a large number to give proper TC" do
+    Timecode.parse("123456", 57).to_s.should.equal "00:12:34:56"
   end
   
   specify "parse timecode with fractional second instead of frames" do

@@ -1,3 +1,7 @@
+=== 0.1.6 / 2009-01-31
+
+* Simplified parsing code, more safeguards and needless exceptions removed
+
 === 0.1.6 / 2009-01-28
 
 * Fixed RDoc linkage

@@ -30,7 +30,7 @@
 == A Timecode of zero should
 * properly respond to zero?
 
-== An existing TImecode on inspection should
+== An existing Timecode on inspection should
 * properly present himself via inspect
 * properly print itself
 
@@ -62,7 +62,7 @@
 * properly classify on at
 * properly  classify on calculations
 
-== Timecode.parse() should
+== Timecode.parse should
 * handle complete SMPTE timecode
 * handle complete SMPTE timecode via new
 * refuse to handle timecode that is out of range for the framerate
@@ -72,6 +72,9 @@
 * parse a number with m suffix as minutes
 * parse a number with h suffix as hours
 * parse different suffixes as a sum of elements
+* parse a number of digits as timecode
+* truncate a large number to the parseable length
+* left-pad a large number to give proper TC
 * parse timecode with fractional second instead of frames
 * raise when trying to parse DF timecode
 * raise on improper format
@@ -84,4 +87,4 @@
 * parse from a 4x4bits packed 32bit unsigned int
 * properly convert itself back to 4x4 bits 32bit unsigned int
 
-57 specifications (95 requirements), 0 failures
+60 specifications (101 requirements), 0 failures
