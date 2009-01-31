@@ -5,7 +5,7 @@ require 'test/spec'
 require File.dirname(__FILE__) + '/../lib/timecode'
 
 
-context "Timecode.new() should" do
+context "Timecode.new should" do
   
   specify "instantiate from int" do
     tc = Timecode.new(10)
@@ -25,9 +25,10 @@ context "Timecode.new() should" do
   specify "accept full string SMPTE timecode as well" do
     Timecode.new("00:25:30:10", 25).should.equal Timecode.parse("00:25:30:10")
   end
+  
 end
 
-context "Timecode.at() should" do 
+context "Timecode.at should" do 
   
   specify "disallow more than 99 hrs" do
     lambda{ Timecode.at(99,0,0,0) }.should.not.raise
@@ -270,16 +271,6 @@ context "Timecode.parse should" do
   specify "handle complete SMPTE timecode" do
     simple_tc = "00:10:34:10"
     Timecode.parse(simple_tc).to_s.should.equal(simple_tc)
-  end
-
-  specify "handle complete SMPTE timecode via new" do
-    simple_tc = "00:10:34:10"
-    Timecode.new(simple_tc).to_s.should.equal(simple_tc)
-  end
-  
-  specify "refuse to handle timecode that is out of range for the framerate" do
-    bad_tc = "00:76:89:30"
-    lambda { Timecode.parse(bad_tc, 25) }.should.raise(Timecode::RangeError)
   end
   
   specify "parse a row of numbers as parts of a timecode starting from the right" do
