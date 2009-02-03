@@ -119,6 +119,13 @@ class Timecode
     
     # Initialize a Timecode object at this specfic timecode
     def at(hrs, mins, secs, frames, with_fps = DEFAULT_FPS)
+      validate_atoms!(hrs, mins, secs, frames, with_fps)
+      total = (hrs*(60*60*with_fps) +  mins*(60*with_fps) + secs*with_fps + frames).round
+      new(total, with_fps)
+    end
+    
+    # Validate the passed atoms for the concrete framerate
+    def validate_atoms!(hrs, mins, secs, frames, with_fps)
       case true
         when hrs > 99
           raise RangeError, "There can be no more than 99 hours, got #{hrs}"
@@ -129,9 +136,6 @@ class Timecode
         when frames > (with_fps -1)
           raise RangeError, "There can be no more than #{with_fps -1} frames @#{with_fps}, got #{frames}"
       end
-    
-      total = (hrs*(60*60*with_fps) +  mins*(60*with_fps) + secs*with_fps + frames).round
-      new(total, with_fps)
     end
     
     # Parse a timecode with fractional seconds instead of frames. This is how ffmpeg reports
@@ -305,7 +309,7 @@ class Timecode
   
   private
   
-  # Formats the actual timecode output from the number of frames
+  # Prepare and format the values for TC output
   def validate!
     frames = @total
     secs = (@total.to_f/@fps).floor
@@ -314,12 +318,9 @@ class Timecode
     secs -= (mins*60)
     hrs = (mins/60).floor
     mins-= (hrs*60)
-  
-    raise RangeError, "Timecode cannot be longer that 99 hrs" if hrs > 99 
-    raise RangeError, "More than 59 minutes" if mins > 59 
-    raise RangeError, "More than 59 seconds" if secs > 59
-    raise RangeError, "More than #{@fps.to_s} frames (#{frames}) in the last second" if frames >= @fps
-  
+
+    self.class.validate_atoms!(hrs, mins, secs, frames, @fps)
+
     [hrs, mins, secs, frames]
   end
   

@@ -1,4 +1,6 @@
-=== 0.1.6 / 2009-01-31
+* Move the validation routine into the class itself
+
+=== 0.1.7 / 2009-01-31
 
 * Simplified parsing code, more safeguards and needless exceptions removed
 

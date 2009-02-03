@@ -28,6 +28,31 @@ context "Timecode.new should" do
   
 end
 
+context "Timecode.validate_atoms! should" do 
+  
+  specify "disallow more than 99 hrs" do
+    lambda{ Timecode.validate_atoms!(99,0,0,0, 25) }.should.not.raise
+    lambda{ Timecode.validate_atoms!(100,0,0,0, 25) }.should.raise(Timecode::RangeError)
+  end
+  
+  specify "disallow more than 59 minutes" do
+    lambda{ Timecode.validate_atoms!(1,60,0,0, 25) }.should.raise(Timecode::RangeError)
+  end
+
+  specify "disallow more than 59 seconds" do
+    lambda{ Timecode.validate_atoms!(1,0,60,0, 25) }.should.raise(Timecode::RangeError)
+  end
+  
+  specify "disallow more frames than what the framerate permits" do
+    lambda{ Timecode.validate_atoms!(1,0,60,25, 25) }.should.raise(Timecode::RangeError)
+    lambda{ Timecode.validate_atoms!(1,0,60,32, 30) }.should.raise(Timecode::RangeError)
+  end
+  
+  specify "pass validation with usable values" do
+    lambda{ Timecode.validate_atoms!(20, 20, 10, 5, 25)}.should.not.raise
+  end
+end
+
 context "Timecode.at should" do 
   
   specify "disallow more than 99 hrs" do
