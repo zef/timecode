@@ -44,8 +44,8 @@ context "Timecode.validate_atoms! should" do
   end
   
   specify "disallow more frames than what the framerate permits" do
-    lambda{ Timecode.validate_atoms!(1,0,60,25, 25) }.should.raise(Timecode::RangeError)
-    lambda{ Timecode.validate_atoms!(1,0,60,32, 30) }.should.raise(Timecode::RangeError)
+    lambda{ Timecode.validate_atoms!(1,0,45,25, 25) }.should.raise(Timecode::RangeError)
+    lambda{ Timecode.validate_atoms!(1,0,45,32, 30) }.should.raise(Timecode::RangeError)
   end
   
   specify "pass validation with usable values" do
@@ -308,6 +308,11 @@ context "Timecode.parse should" do
   specify "handle complete SMPTE timecode" do
     simple_tc = "00:10:34:10"
     Timecode.parse(simple_tc).to_s.should.equal(simple_tc)
+  end
+  
+  specify "handle timecode with fractional seconds" do
+    tc = Timecode.parse("10:10:10.2", 25)
+    tc.to_s.should.equal "10:10:10:05"
   end
   
   specify "parse a row of numbers as parts of a timecode starting from the right" do

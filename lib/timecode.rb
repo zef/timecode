@@ -80,9 +80,6 @@ class Timecode
       # Drop frame goodbye
       if (input =~ DF_TC_RE)
         raise Error, "We do not support drop-frame TC"
-      # No empty values
-      elsif (input =~ /A(\s+)Z/)
-        raise CannotParse, "Empty timecode"
       # 00:00:00:00
       elsif (input =~ COMPLETE_TC_RE)
         atoms_and_fps = input.scan(COMPLETE_TC_RE).to_a.flatten.map{|e| Integer(e)} + [with_fps]
