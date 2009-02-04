@@ -156,6 +156,18 @@ context "A Timecode of zero should" do
   end
 end
 
+context "Timecode#to_seconds should" do
+  specify "return a float" do
+    Timecode.new(0).to_seconds.should.be.kind_of Float
+  end
+  
+  specify "return the value in seconds" do
+    fps = 24
+    secs = 126.3
+    Timecode.new(fps * secs, fps).to_seconds.should.be.close 126.3, 0.1
+  end
+end
+
 context "An existing Timecode on inspection should" do
   specify "properly present himself via inspect" do
     Timecode.new(10, 25).inspect.should.equal "#<Timecode:00:00:00:10 (10F@25.00)>"

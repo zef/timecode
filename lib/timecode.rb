@@ -221,6 +221,11 @@ class Timecode
     uint
   end
   
+  # get the timecode as a floating-point number of seconds (used in Quicktime)
+  def to_seconds
+    (@total / @fps)
+  end
+  
   # Convert to different framerate based on the total frames. Therefore,
   # 1 second of PAL video will convert to 25 frames of NTSC (this 
   # is suitable for PAL to film TC conversions and back).

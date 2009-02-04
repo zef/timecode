@@ -1,3 +1,4 @@
+* Add Timecode#to_seconds that returns a float value (useful for Quicktime)
 * Move the validation routine into the class itself
 
 === 0.1.7 / 2009-01-31
