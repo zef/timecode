@@ -12,7 +12,7 @@
 #     :mapping => [%w(source_tc_frames total), %w(tape_fps fps)]
 
 class Timecode
-  VERSION = '0.1.7'
+  VERSION = '0.1.8'
 
   include Comparable
   
@@ -78,13 +78,13 @@ class Timecode
     # * 00:00:00:00 - will be parsed as zero TC
     def parse(input, with_fps = DEFAULT_FPS)
       # Drop frame goodbye
-      raise Error, "We do not support drop frame" if (input =~ DF_TC_RE)
-      
-      hrs, mins, secs, frames = 0,0,0,0
-      atoms = []
-      
+      if (input =~ DF_TC_RE)
+        raise Error, "We do not support drop-frame TC"
+      # No empty values
+      elsif (input =~ /A(\s+)Z/)
+        raise CannotParse, "Empty timecode"
       # 00:00:00:00
-      if (input =~ COMPLETE_TC_RE)
+      elsif (input =~ COMPLETE_TC_RE)
         atoms_and_fps = input.scan(COMPLETE_TC_RE).to_a.flatten.map{|e| Integer(e)} + [with_fps]
         return at(*atoms_and_fps)
       # 00:00:00.0
@@ -92,7 +92,9 @@ class Timecode
         parse_with_fractional_seconds(input, with_fps)
       # 10h 20m 10s 1f 00:00:00:01 - space separated is a sum of parts
       elsif input =~ /\s/
-        return input.split.map{|part|  parse(part, with_fps) }.inject { |sum, p| sum + p.total }
+        parts = input.gsub(/\s/, ' ').split.reject{|e| e.strip.empty? }
+        raise CannotParse, "No atoms" if parts.empty?
+        parts.map{|part|  parse(part, with_fps) }.inject{|sum, p| sum + p.total }
       # 10s
       elsif input =~ /^(\d+)s$/
         return new(input.to_i * with_fps, with_fps)

@@ -382,6 +382,9 @@ context "Timecode.parse should" do
     lambda { Timecode.parse("", 25) }.should.raise Timecode::CannotParse
   end
   
+  specify "raise on empty argument" do
+    lambda { Timecode.parse("   \n\n  ", 25) }.should.raise Timecode::CannotParse
+  end
 end
 
 context "Timecode.soft_parse should" do
