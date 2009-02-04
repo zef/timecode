@@ -1,11 +1,18 @@
 
-== Timecode.new() should
+== Timecode.new should
 * instantiate from int
 * always coerce FPS to float
 * create a zero TC with no arguments
 * accept full string SMPTE timecode as well
 
-== Timecode.at() should
+== Timecode.validate_atoms! should
+* disallow more than 99 hrs
+* disallow more than 59 minutes
+* disallow more than 59 seconds
+* disallow more frames than what the framerate permits
+* pass validation with usable values
+
+== Timecode.at should
 * disallow more than 99 hrs
 * disallow more than 59 minutes
 * disallow more than 59 seconds
@@ -29,6 +36,10 @@
 
 == A Timecode of zero should
 * properly respond to zero?
+
+== Timecode#to_seconds should
+* return a float
+* return the value in seconds
 
 == An existing Timecode on inspection should
 * properly present himself via inspect
@@ -64,8 +75,6 @@
 
 == Timecode.parse should
 * handle complete SMPTE timecode
-* handle complete SMPTE timecode via new
-* refuse to handle timecode that is out of range for the framerate
 * parse a row of numbers as parts of a timecode starting from the right
 * parse a number with f suffix as frames
 * parse a number with s suffix as seconds
@@ -78,6 +87,7 @@
 * parse timecode with fractional second instead of frames
 * raise when trying to parse DF timecode
 * raise on improper format
+* raise on empty argument
 
 == Timecode.soft_parse should
 * parse the timecode
@@ -87,4 +97,4 @@
 * parse from a 4x4bits packed 32bit unsigned int
 * properly convert itself back to 4x4 bits 32bit unsigned int
 
-60 specifications (101 requirements), 0 failures
+66 specifications (109 requirements), 0 failures
