@@ -1,3 +1,7 @@
+=== 0.1.9 / 2009-02-23
+
+* Do not be biased when rounding out frames on from_seconds
+
 === 0.1.8 / 2009-01-31
 
 * Bail out with empty or whitespace strings passed to Timecode.parse

@@ -166,6 +166,13 @@ context "Timecode#to_seconds should" do
     secs = 126.3
     Timecode.new(fps * secs, fps).to_seconds.should.be.close 126.3, 0.1
   end
+  
+  specify "properly roundtrip a value via Timecode.from_seconds" do
+    secs_in = 19.76
+    from_secs = Timecode.from_seconds(19.76, 25.0)
+    from_secs.total.should.equal 494
+    from_secs.to_seconds.should.be.close(secs_in, 0.001)
+  end
 end
 
 context "An existing Timecode on inspection should" do
@@ -271,7 +278,7 @@ context "A Timecode used with fractional number of seconds" do
 
     fraction = 7.16
     tc = Timecode.from_seconds(fraction, 12.5)
-    tc.to_s.should.equal "00:00:07:02"
+    tc.to_s.should.equal "00:00:07:01"
   end
 
 end

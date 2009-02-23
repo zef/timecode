@@ -12,7 +12,7 @@
 #     :mapping => [%w(source_tc_frames total), %w(tape_fps fps)]
 
 class Timecode
-  VERSION = '0.1.8'
+  VERSION = '0.1.9'
 
   include Comparable
   
@@ -154,7 +154,7 @@ class Timecode
     # create a timecode from the number of seconds. This is how current time is supplied by
     # QuickTime and other systems which have non-frame-based timescales
     def from_seconds(seconds_float, the_fps = DEFAULT_FPS)
-      total_frames = (seconds_float.to_f * the_fps.to_f).ceil
+      total_frames = (seconds_float.to_f * the_fps.to_f).to_i
       new(total_frames, the_fps)
     end
   
