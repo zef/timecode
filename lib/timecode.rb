@@ -82,7 +82,7 @@ class Timecode
         raise Error, "We do not support drop-frame TC"
       # 00:00:00:00
       elsif (input =~ COMPLETE_TC_RE)
-        atoms_and_fps = input.scan(COMPLETE_TC_RE).to_a.flatten.map{|e| Integer(e)} + [with_fps]
+        atoms_and_fps = input.scan(COMPLETE_TC_RE).to_a.flatten.map{|e| e.to_i } + [with_fps]
         return at(*atoms_and_fps)
       # 00:00:00.0
       elsif input =~ FRACTIONAL_TC_RE
