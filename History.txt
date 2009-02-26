@@ -1,3 +1,7 @@
+=== 0.2.0 / 2009-02-26
+
+* Properly handle integers starting with 0 in Tiecode.parse (zef)
+
 === 0.1.9 / 2009-02-23
 
 * Do not be biased when rounding out frames on from_seconds

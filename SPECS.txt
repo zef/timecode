@@ -90,6 +90,7 @@
 * raise when trying to parse DF timecode
 * raise on improper format
 * raise on empty argument
+* properly handle 09 and 08 as part of complete TC pattern
 
 == Timecode.soft_parse should
 * parse the timecode
@@ -99,4 +100,4 @@
 * parse from a 4x4bits packed 32bit unsigned int
 * properly convert itself back to 4x4 bits 32bit unsigned int
 
-68 specifications (112 requirements), 0 failures
+69 specifications (113 requirements), 0 failures
