@@ -397,6 +397,10 @@ context "Timecode.parse should" do
   specify "raise on empty argument" do
     lambda { Timecode.parse("   \n\n  ", 25) }.should.raise Timecode::CannotParse
   end
+  
+  specify "properly handle 09 and 08 as part of complete TC pattern" do
+    Timecode.parse( "09:08:09:08", 25).total.should.equal 822233
+  end
 end
 
 context "Timecode.soft_parse should" do
